@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext'; // Import the AuthContext
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/logo.png'; // Import the logo
 
 const Login = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -45,11 +46,17 @@ const Login = () => {
         }
     };
 
+    const handleNavigateToRegister = () => {
+        navigate('/register'); // Redirect to the register page
+    };
 
     return (
         <div className="min-h-screen flex justify-center items-center">
-            <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-                <h2 className="text-2xl font-semibold mb-6 text-center">Login</h2>
+            <div className="absolute top-6 left-10">
+                <img src={logo} alt="Logo" className="h-20" />
+            </div>
+            <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+                <h2 className="text-4xl font-semibold text-[#0B6477] mb-6 text-center">Login</h2>
                 {error && <div className="text-red-500 text-center mb-4">{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
@@ -76,17 +83,22 @@ const Login = () => {
                             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                         />
                     </div>
-                    <button type="submit" className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <button type="submit" className="w-full bg-[#14919B] hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
                         Login
                     </button>
                 </form>
-                <p className="mt-4 text-sm text-center">
-                    Don't have an account?{' '}
-                    <a href="/register" className="text-blue-500 hover:text-blue-700">Register here</a>
-                </p>
+                <div className="mt-4 text-center">
+                    <p className="text-sm text-gray-600">
+                        Don't have an account?{' '}
+                        <button onClick={handleNavigateToRegister} className="text-blue-500 hover:underline">
+                            Register here
+                        </button>
+                    </p>
+                </div>
             </div>
         </div>
     );
 };
 
 export default Login;
+
