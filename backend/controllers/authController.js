@@ -73,7 +73,7 @@ export const login = async (req, res) => {
 
         // Send token in both the cookie and the response body
         res
-            .cookie('authToken', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' })
+            .cookie('authToken', token, { httpOnly: true, secure: false })
             .status(200)
             .json({ success: true, message: 'Logged in successfully', token });  // Return token here
     } catch (error) {

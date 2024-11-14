@@ -2,7 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors'; // Import cors
 import authRoutes from './routes/authRoutes.js';
-import { isAuthenticated } from './middlewares/authMiddleware.js';
+import doctorRoutes from './routes/doctorRoutes.js';
 
 const app = express();
 

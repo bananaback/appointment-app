@@ -8,6 +8,7 @@ import User from '../models/UserAccount.js';
 export const isAuthenticated = (allowedRoles = []) => {
     return async (req, res, next) => {
         const token = req.cookies.authToken;
+        console.log('token', token);
         if (!token) return res.status(401).json({ message: 'Authentication required' });
 
         try {

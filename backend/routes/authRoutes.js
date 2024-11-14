@@ -9,7 +9,7 @@ router.post('/login', login);
 router.post('/logout', isAuthenticated(), logout);
 
 
-
+// example secured endpoint
 router.get('/admin', isAuthenticated(['Admin']), (req, res) => {
     res.status(200).json({ message: 'Welcome, Admin!' });
 });
