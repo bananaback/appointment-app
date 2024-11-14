@@ -1,5 +1,7 @@
+// src/pages/Register.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/logo.png'; // Import the logo
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -37,30 +39,27 @@ const Register = () => {
             });
 
             if (!response.ok) {
-                // Parse the error message from the backend
                 const errorData = await response.json();
                 console.log(errorData); // Log the error response from the backend
-
-                // Throw an error with the message from the backend
                 throw new Error(errorData.message || 'Failed to register');
             }
 
-            // Assuming backend sends success response with data like `{ message: "success" }`
             const data = await response.json();
             console.log(data);  // Log the success data for debugging
 
-            // Navigate to login page after successful registration
             navigate('/login');
         } catch (error) {
             setError(error.message); // Show error message on UI
         }
     };
 
-
     return (
         <div className="min-h-screen flex justify-center items-center">
+            <div className="absolute top-6 left-10">
+                <img src={logo} alt="Logo" className="h-20" />
+            </div>
             <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-                <h2 className="text-2xl font-semibold mb-6 text-center">Register</h2>
+                <h2 className="text-4xl font-semibold text-[#0B6477] mb-6 text-center">Register</h2>
                 {error && <div className="text-red-500 text-center mb-4">{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
@@ -149,7 +148,6 @@ const Register = () => {
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    {/* Conditional fields based on role */}
                     {formData.role === 'Patient' && (
                         <div className="mb-4">
                             <label htmlFor="medicalHistory" className="block text-sm font-medium text-gray-700">Medical History</label>
@@ -192,14 +190,24 @@ const Register = () => {
                     )}
                     <button
                         type="submit"
-                        className="w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                        className="w-full py-2 bg-[#14919B] font-bold text-white rounded-md hover:bg-blue-700"
                     >
                         Register
                     </button>
                 </form>
+                <p className="text-center mt-4">
+                    Already have an account?{' '}
+                    <span 
+                        className="text-blue-500 hover:underline cursor-pointer"
+                        onClick={() => navigate('/login')}
+                    >
+                        Login here
+                    </span>
+                </p>
             </div>
         </div>
     );
 };
 
 export default Register;
+
