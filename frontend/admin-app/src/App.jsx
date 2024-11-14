@@ -24,10 +24,10 @@ function App() {
           <Route path="/" element={<Layout />}>
             {/* The different content pages rendered inside the Layout */}
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/doctor-list" element={<DoctorList />} />
+            <Route path="/doctors" element={<DoctorList />} />
             <Route path="/add-doctor" element={<AddDoctor />} />
             <Route path="/add-admin" element={<AddAdmin />} />
-            <Route path="/edit-doctor" element={<EditDoctor />} />
+            <Route path="/edit-doctor/:id" element={<EditDoctor />} />
           </Route>
         </Route>
       </Routes>

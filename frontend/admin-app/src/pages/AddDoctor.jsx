@@ -42,8 +42,8 @@ const AddDoctor = () => {
     const handleUploadClick = () => {
         const myWidget = window.cloudinary.createUploadWidget(
             {
-                cloudName: 'dxclyqubm',
-                uploadPreset: 'appointment-app-preset',
+                cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+                uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET, // Use env variable
             },
             (error, result) => {
                 if (!error && result && result.event === 'success') {

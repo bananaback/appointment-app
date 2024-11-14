@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 
 const DoctorList = () => {
@@ -10,10 +11,10 @@ const DoctorList = () => {
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState('');
     const [specialty, setSpecialty] = useState('');
-    const [sort, setSort] = useState(''); // e.g., "name_asc", "experience_desc"
-    const [limit, setLimit] = useState(10); // Doctors per page
+    const [sort, setSort] = useState('');
+    const [limit, setLimit] = useState(10);
+    const navigate = useNavigate(); // Initialize useNavigate
 
-    // Fetch doctors with query parameters
     const fetchDoctors = async (page) => {
         setLoading(true);
         try {
@@ -39,19 +40,17 @@ const DoctorList = () => {
 
     useEffect(() => {
         fetchDoctors(currentPage);
-    }, [currentPage, search, specialty, sort, limit]); // Add limit to dependencies
+    }, [currentPage, search, specialty, sort, limit]);
 
-    // Handle page changes
     const handlePageChange = (page) => {
         if (page > 0 && page <= totalPages) {
             setCurrentPage(page);
         }
     };
 
-    // Handle input changes for search, specialty, and sort
     const handleSearchChange = (e) => {
         setSearch(e.target.value);
-        setCurrentPage(1); // Reset to first page for new search
+        setCurrentPage(1);
     };
 
     const handleSpecialtyChange = (e) => {
@@ -66,10 +65,9 @@ const DoctorList = () => {
 
     const handleLimitChange = (e) => {
         setLimit(e.target.value);
-        setCurrentPage(1); // Reset to first page when limit changes
+        setCurrentPage(1);
     };
 
-    // Render pagination buttons
     const renderPagination = () => {
         const pages = [];
         for (let i = 1; i <= totalPages; i++) {
@@ -86,11 +84,15 @@ const DoctorList = () => {
         return pages;
     };
 
+    // Handle navigation to EditDoctor page
+    const handleDoctorClick = (doctorId) => {
+        navigate(`/edit-doctor/${doctorId}`); // Navigate to EditDoctor page with the doctorId
+    };
+
     return (
         <div className="container mx-auto py-10 px-4">
             <h1 className="text-3xl font-bold mb-5">Doctors List</h1>
 
-            {/* Search, Filter, and Sort Controls */}
             <div className="mb-5 flex gap-4">
                 <input
                     type="text"
@@ -136,7 +138,6 @@ const DoctorList = () => {
                 </select>
             </div>
 
-            {/* Doctors List */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
                 {loading ? (
                     <div className="text-center col-span-full">Loading...</div>
@@ -144,7 +145,8 @@ const DoctorList = () => {
                     doctors.map((doctor) => (
                         <div
                             key={doctor._id}
-                            className="bg-white shadow-lg rounded-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl"
+                            onClick={() => handleDoctorClick(doctor._id)} // Navigate on click
+                            className="bg-white shadow-lg rounded-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-xl cursor-pointer"
                         >
                             {doctor.docAvatar?.url ? (
                                 <img
@@ -175,7 +177,6 @@ const DoctorList = () => {
                 )}
             </div>
 
-            {/* Pagination Controls */}
             <div className="mt-5 flex justify-center gap-2">
                 <button
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -194,7 +195,6 @@ const DoctorList = () => {
                 </button>
             </div>
 
-            {/* Toast Notifications */}
             <ToastContainer />
         </div>
     );

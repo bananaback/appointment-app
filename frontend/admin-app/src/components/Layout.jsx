@@ -48,7 +48,7 @@ const Layout = () => {
                         {/* Other Links */}
                         <li>
                             <Link
-                                to="/doctor-list"
+                                to="/doctors"
                                 className="w-full text-left px-4 py-3 hover:bg-blue-100 rounded-lg text-gray-700 font-medium flex items-center space-x-3"
                             >
                                 <FaUserMd className="text-xl text-blue-600" />
@@ -73,15 +73,7 @@ const Layout = () => {
                                 <span>Add New Admin</span>
                             </Link>
                         </li>
-                        <li>
-                            <Link
-                                to="/edit-doctor"
-                                className="w-full text-left px-4 py-3 hover:bg-blue-100 rounded-lg text-gray-700 font-medium flex items-center space-x-3"
-                            >
-                                <FaStethoscope className="text-xl text-purple-600" />
-                                <span>Edit Doctor</span>
-                            </Link>
-                        </li>
+
                     </ul>
                 </div>
 
