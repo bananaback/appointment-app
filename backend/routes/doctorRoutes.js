@@ -1,11 +1,11 @@
 import express from 'express';
-import { getAllDoctors, getDoctorById, createDoctor, updateDoctor, deleteDoctor } from '../controllers/doctorController.js';
+import { getDoctors, getDoctorById, createDoctor, updateDoctor, deleteDoctor } from '../controllers/doctorController.js';
 import { isAuthenticated } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 // GET all doctors (Admin only)
-router.get('/', isAuthenticated(['Admin']), getAllDoctors);
+router.get('/', isAuthenticated(['Admin']), getDoctors);
 
 // GET single doctor by ID
 router.get('/:id', isAuthenticated(['Admin', 'Doctor']), getDoctorById);
