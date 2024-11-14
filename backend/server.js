@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors'; // Import cors
 import authRoutes from './routes/authRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 const app = express();
 
@@ -24,5 +25,6 @@ app.use('/auth', authRoutes);
 // Use doctor routes
 app.use('/doctors', doctorRoutes);
 
+app.use('/admins', adminRoutes);
 
 export default app;
