@@ -1,0 +1,102 @@
+# Node.js
+node_modules/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.tsbuildinfo
+
+# Vite
+**/dist/
+
+# Static build output
+/public/assets/
+
+# Dependency directories
+**/node_modules/
+
+# Vite cache
+**/.vite/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Linux
+*~
+
+# Temporary files
+tmp/
+temp/
+.cache/
+out/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Optional test coverage
+coverage/
+
+# MongoDB data (if any)
+*.lock
+
+# JWT secret keys (if any)
+jwtRS256.key
+jwtRS256.key.pub
+
+# Backend specific
+/backend/.env
+/backend/.cache
+/backend/build/
+backend/dist/
+
+# Patient App specific
+/patient-app/.env
+/patient-app/node_modules/
+/patient-app/dist
+
+# Doctor App specific
+/doctor-app/.env
+/doctor-app/node_modules/
+/doctor-app/dist
+
+# Admin App specific
+/admin-app/.env
+/admin-app/node_modules/
+/admin-app/dist
