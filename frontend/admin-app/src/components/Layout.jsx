@@ -73,7 +73,15 @@ const Layout = () => {
                                 <span>Add New Admin</span>
                             </Link>
                         </li>
-
+                        <li>
+                            <Link
+                                to="/workshifts"
+                                className="w-full text-left px-4 py-3 hover:bg-blue-100 rounded-lg text-gray-700 font-medium flex items-center space-x-3"
+                            >
+                                <FaHospital className="text-xl text-yellow-600" />
+                                <span>Create doctor workshift</span>
+                            </Link>
+                        </li>
                     </ul>
                 </div>
 
