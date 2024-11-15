@@ -1,18 +1,54 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import logo from '../assets/logo.png'; 
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const { login } = useAuth(); // Assuming login function is provided from AuthContext
+    const navigate = useNavigate();
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        // Basic login handling - you can extend this as needed
-        console.log('Email:', email);
-        console.log('Password:', password);
+        try {
+            console.log('Attempting login...'); // Debug log
+            const response = await fetch('http://localhost:4000/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+                credentials: 'include',
+            });
+
+            console.log(response); // Log the response object for debugging
+
+            if (!response.ok) {
+                throw new Error('Invalid email or password');
+            }
+
+            const data = await response.json();
+            console.log('Login successful:', data); // Debug log
+
+            if (data.token) {
+                login(data.token);
+                navigate('/dashboard');
+            } else {
+                throw new Error('Token not received');
+            }
+        } catch (err) {
+            console.error('Error during login:', err); // Log any error that occurs
+            setError(err.message);
+        }
     };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <div className="absolute top-6 left-10">
+                <img src={logo} alt="Logo" className="h-20" />
+            </div>
             <div className="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-lg">
                 <h2 className="text-3xl font-bold text-center text-indigo-600">
                     Welcome, Doctor
@@ -49,7 +85,7 @@ const LoginPage = () => {
                     </div>
                     <button
                         type="submit"
-                        className="w-full px-4 py-2 font-semibold text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full px-4 py-2 font-semibold text-white bg-[#14919B] rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     >
                         Login
                     </button>
