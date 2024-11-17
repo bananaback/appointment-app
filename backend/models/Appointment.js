@@ -13,7 +13,7 @@ const appointmentSchema = new mongoose.Schema({
     },  // Reference to the patient requesting the appointment
     status: {
         type: String,
-        enum: ['Pending', 'Accepted', 'Rejected'],
+        enum: ['Pending', 'Accepted', 'Rejected', 'Done'],
         default: 'Pending'
     },
     requestDate: { type: Date, default: Date.now },  // Date when the appointment was requested

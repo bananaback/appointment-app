@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes.js';
 import doctorRoutes from './routes/doctorRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import workShiftRoutes from './routes/workShiftRoutes.js';
+import appointmentRoutes from './routes/appointmentRoutes.js';
 
 const app = express();
 
@@ -29,5 +30,7 @@ app.use('/doctors', doctorRoutes);
 app.use('/admins', adminRoutes);
 
 app.use('/workshifts', workShiftRoutes);
+
+app.use('/appointments', appointmentRoutes);
 
 export default app;
