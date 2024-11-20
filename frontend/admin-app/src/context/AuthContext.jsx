@@ -30,12 +30,15 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         // Clear user session
-        setToken(null); // Clear the current token
-        localStorage.removeItem('authToken'); // Remove token from localStorage
+        setToken(null); // Clear the current token state first
+        localStorage.removeItem('authToken'); // Then remove token from localStorage
 
-        // Redirect to login page
-        navigate('/login');
+        // Ensure navigation happens after token is cleared
+        setTimeout(() => {
+            navigate('/login');
+        }, 0); // Add a slight delay to ensure state updates propagate
     };
+
 
     return (
         <AuthContext.Provider value={{ token, login, logout, loading }}>
