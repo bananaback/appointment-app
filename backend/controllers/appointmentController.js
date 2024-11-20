@@ -44,8 +44,8 @@ export const createAppointment = async (req, res) => {
 
 export const getAllAppointments = async (req, res) => {
     try {
-        const { date } = req.query;  // Optional date filter
-        const userId = req.user.id;  // The currently authenticated user's ID
+        const { startDate, endDate } = req.query; // Optional date range filters
+        const userId = req.user.id; // The currently authenticated user's ID
 
         // Get the user's role from the database to verify
         const user = await UserAccount.findById(userId);
@@ -53,24 +53,16 @@ export const getAllAppointments = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const userRole = user.role;  // The role of the current user (Patient/Doctor)
+        const userRole = user.role; // The role of the current user (Patient/Doctor)
 
         let filter = {};
 
         if (userRole === 'Patient') {
-            // Patient should see their own appointments
+            // Patients should see their own appointments
             filter.patient = userId;
 
-            if (date) {
-                // If date filter is provided, filter appointments by date
-                const startOfDay = new Date(date);
-                const endOfDay = new Date(startOfDay);
-                endOfDay.setHours(23, 59, 59, 999);
-                filter.requestDate = { $gte: startOfDay, $lte: endOfDay };
-            }
-
         } else if (userRole === 'Doctor') {
-            // Doctor should see appointments where they are the assigned doctor
+            // Doctors should see appointments where they are assigned
             const workShifts = await WorkShift.find({ doctor: userId });
 
             if (!workShifts.length) {
@@ -78,29 +70,33 @@ export const getAllAppointments = async (req, res) => {
             }
 
             filter.workShift = { $in: workShifts.map(ws => ws._id) };
+        }
 
-            if (date) {
-                // If date filter is provided, filter appointments by date
-                const startOfDay = new Date(date);
-                const endOfDay = new Date(startOfDay);
-                endOfDay.setHours(23, 59, 59, 999);
-                filter.requestDate = { $gte: startOfDay, $lte: endOfDay };
+        // Apply date range filtering
+        if (startDate || endDate) {
+            filter.requestDate = {};
+            if (startDate) {
+                filter.requestDate.$gte = new Date(startDate);
+            }
+            if (endDate) {
+                filter.requestDate.$lte = new Date(endDate);
             }
         }
 
         // Fetch appointments based on the filter
         const appointments = await Appointment.find(filter)
-            .populate('patient', 'firstName lastName email phone')  // Patient details
-            .populate('workShift', 'date timeSlot')  // Work shift details
-            .sort({ requestDate: -1 });  // Sort by request date (latest first)
+            .populate('patient', 'firstName lastName email phone') // Patient details
+            .populate('workShift', 'date timeSlot') // Work shift details
+            .sort({ requestDate: -1 }); // Sort by request date (latest first)
 
-        res.status(200).json({ appointments });
+        res.status(200).json({ success: true, appointments });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ success: false, message: 'Server error', error });
     }
 };
+
 
 export const updateAppointmentStatus = async (req, res) => {
     try {
