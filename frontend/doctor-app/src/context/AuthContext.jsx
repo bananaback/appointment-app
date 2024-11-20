@@ -4,46 +4,60 @@ import { useNavigate } from 'react-router-dom';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [token, setToken] = useState(null);
-    const [loading, setLoading] = useState(true);  // Add loading state
+    const [token, setToken] = useState(null); // Lưu token xác thực
+    const [userId, setUserId] = useState(null); // Lưu userId của người dùng
+    const [loading, setLoading] = useState(true); // Trạng thái tải ứng dụng
     const navigate = useNavigate();
 
-    // Check localStorage for the token when the app starts
+    // Kiểm tra token và userId từ localStorage khi ứng dụng khởi chạy
     useEffect(() => {
         const savedToken = localStorage.getItem('authToken');
-        if (savedToken) {
-            setToken(savedToken);  // If token exists, set it
+        const savedUserId = localStorage.getItem('userId');
+
+        if (savedToken && savedUserId) {
+            setToken(savedToken); // Lưu token vào state
+            setUserId(savedUserId); // Lưu userId vào state
         }
-        setLoading(false);  // Set loading to false after checking
+
+        setLoading(false); // Hoàn tất quá trình kiểm tra
     }, []);
 
-    const login = (token) => {
-        // Clear previous session (if any)
-        localStorage.removeItem('authToken'); // Remove previous token
-        // Store the token in localStorage
-        setToken(token);  // Update state with the new token
-        localStorage.setItem('authToken', token); // Store in localStorage
+    // Hàm đăng nhập: lưu token và userId
+    const login = (token, userId) => {
+        // Xóa dữ liệu cũ nếu có
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userId');
 
-        // Navigate to the dashboard
+        // Lưu token và userId mới vào state và localStorage
+        setToken(token);
+        setUserId(userId);
+        localStorage.setItem('authToken', token);
+        localStorage.setItem('userId', userId);
+
+        // Điều hướng đến dashboard
         navigate('/dashboard');
     };
 
+    // Hàm đăng xuất
     const logout = () => {
-        // Clear user session
-        setToken(null); // Clear the current token
-        localStorage.removeItem('authToken'); // Remove token from localStorage
+        // Xóa token và userId khỏi state và localStorage
+        setToken(null);
+        setUserId(null);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userId');
 
-        // Redirect to login page
+        // Điều hướng đến trang đăng nhập
         navigate('/login');
     };
 
     return (
-        <AuthContext.Provider value={{ token, login, logout, loading }}>
+        <AuthContext.Provider value={{ token, userId, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
+// Hook để sử dụng AuthContext
 export const useAuth = () => {
     return useContext(AuthContext);
 };

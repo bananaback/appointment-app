@@ -48,11 +48,11 @@ const Layout = () => {
                         {/* Other Links */}
                         <li>
                             <Link
-                                to="/doctors"
+                                to="/workshifts"
                                 className="w-full text-left px-4 py-3 hover:bg-blue-100 rounded-lg text-gray-700 font-medium flex items-center space-x-3"
                             >
                                 <FaUserMd className="text-xl text-blue-600" />
-                                <span>Doctor List</span>
+                                <span>Workshift</span>
                             </Link>
                         </li>
                     </ul>
