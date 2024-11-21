@@ -7,7 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../context/AuthContext";
 
 const Appointment = () => {
-  const [departments, setDepartments] = useState([]);
+  const [specialties, setSpecialties] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [workShifts, setWorkShifts] = useState([]);
   const [selectedWorkShift, setSelectedWorkShift] = useState([]);
@@ -16,17 +16,19 @@ const Appointment = () => {
   const [appointmentDate, setAppointmentDate] = useState(new Date());
   const [notes, setNotes] = useState("");
 
-  // Fetch departments (specialties)
+  const { user, loading } = useAuth();
+
+  // Fetch specialties (specialties)
   useEffect(() => {
-    // Replace with API call to fetch hospital departments
-    const fetchedDepartments = [
+    // Replace with API call to fetch hospital specialties
+    const fetchedSpecialties = [
       "Cardiology",
       "Pediatrics",
       "Neurology",
       "Orthopedics",
       "General Practice",
     ];
-    setDepartments(fetchedDepartments);
+    setSpecialties(fetchedSpecialties);
   }, []);
 
   // Fetch doctors based on specialty
@@ -80,8 +82,6 @@ const Appointment = () => {
     fetchWorkShifts();
   }, [selectedDoctor, appointmentDate]);
 
-  const { userId, loading } = useAuth();
-
   const handleAddAppointment = async () => {
     if (!selectedWorkShift || !notes) {
       toast.error("Please select a work shift and take notes!");
@@ -89,7 +89,7 @@ const Appointment = () => {
     }
 
     const newAppointment = {
-      patientId: userId,
+      patientId: user._id,
       workShiftId: selectedWorkShift,
       notes: notes,
     };
@@ -145,7 +145,7 @@ const Appointment = () => {
           required
         >
           <option value="">--Select a Specialty--</option>
-          {departments.map((dept, index) => (
+          {specialties.map((dept, index) => (
             <option key={index} value={dept}>
               {dept}
             </option>

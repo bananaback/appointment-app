@@ -3,15 +3,12 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../context/AuthContext";
-import Appointment from "./AppointmentForm";
 
 const MyAppointments = () => {
-  const { userId } = useAuth();
+  const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
-  const [doctor, setDoctor] = useState(null);
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [appointmentToEdit, setAppointmentToEdit] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [appointmentsPerPage] = useState(3); // Adjust this as needed
 
   // Fetch user's appointments
   useEffect(() => {
@@ -27,13 +24,7 @@ const MyAppointments = () => {
     };
 
     fetchAppointments();
-  }, [userId]);
-
-  // Handle updating an appointment
-  const handleUpdateAppointment = (appointment) => {
-    setIsEditing(true);
-    setAppointmentToEdit(appointment);
-  };
+  }, [user._id]);
 
   // Handle canceling an appointment
   const handleCancelAppointment = async (appointmentId) => {
@@ -58,17 +49,16 @@ const MyAppointments = () => {
     }
   };
 
-  if (isEditing) {
-    return (
-      <Appointment
-        initialData={appointmentToEdit} // Pass existing appointment data
-        onClose={() => {
-          setIsEditing(false);
-          setAppointmentToEdit(null);
-        }}
-      />
-    );
-  }
+  // Pagination logic
+  const indexOfLastAppointment = currentPage * appointmentsPerPage;
+  const indexOfFirstAppointment = indexOfLastAppointment - appointmentsPerPage;
+  const currentAppointments = appointments.slice(
+    indexOfFirstAppointment,
+    indexOfLastAppointment
+  );
+
+  // Change page
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-md">
@@ -79,7 +69,7 @@ const MyAppointments = () => {
         <p className="text-center text-gray-500">No appointments found.</p>
       ) : (
         <div className="space-y-4">
-          {appointments.map((appointment) => (
+          {currentAppointments.map((appointment) => (
             <div
               key={appointment._id}
               className="flex items-center justify-between p-4 border rounded-md shadow-sm hover:shadow-md"
@@ -110,6 +100,9 @@ const MyAppointments = () => {
                   Time: {appointment.workShift.timeSlot}
                 </p>
                 <p className="text-sm text-gray-500">
+                  Status: {appointment.status}
+                </p>
+                <p className="text-sm text-gray-500">
                   Description:{" "}
                   {appointment.notes.length > 50
                     ? `${appointment.notes.substring(0, 50)}...`
@@ -119,12 +112,6 @@ const MyAppointments = () => {
 
               {/* Action Buttons */}
               <div className="flex flex-col space-y-2">
-                <button
-                  onClick={() => handleUpdateAppointment(appointment)}
-                  className="px-4 py-2 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600"
-                >
-                  Update
-                </button>
                 <button
                   onClick={() => handleCancelAppointment(appointment._id)}
                   className="px-4 py-2 bg-red-500 text-white text-sm rounded-md hover:bg-red-600"
@@ -136,6 +123,31 @@ const MyAppointments = () => {
           ))}
         </div>
       )}
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center mt-4">
+        <button
+          onClick={() => paginate(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-4 py-2 bg-gray-300 text-sm rounded-md hover:bg-gray-400"
+        >
+          Previous
+        </button>
+        <span className="mx-4 text-sm">
+          Page {currentPage} of{" "}
+          {Math.ceil(appointments.length / appointmentsPerPage)}
+        </span>
+        <button
+          onClick={() => paginate(currentPage + 1)}
+          disabled={
+            currentPage === Math.ceil(appointments.length / appointmentsPerPage)
+          }
+          className="px-4 py-2 bg-gray-300 text-sm rounded-md hover:bg-gray-400"
+        >
+          Next
+        </button>
+      </div>
+
       <ToastContainer position="top-center" autoClose={3000} />
     </div>
   );
