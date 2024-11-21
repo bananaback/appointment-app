@@ -47,6 +47,7 @@ export const getAllAppointments = async (req, res) => {
         const { startDate, endDate } = req.query; // Bộ lọc khoảng thời gian tùy chọn
         const user = req.user; // Thông tin user từ middleware isAuthenticated
 
+
         if (!user) {
             return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
@@ -99,11 +100,13 @@ export const getAllAppointments = async (req, res) => {
             })
             .sort({ requestDate: -1 }); // Sắp xếp theo requestDate (mới nhất trước)
 
+
         res.status(200).json({ success: true, appointments });
 
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
+
     }
 };
 
