@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom'; // Outlet is for rendering nested routes
-import { FaCalendarCheck, FaCalendarAlt, FaSignOutAlt } from 'react-icons/fa'; // Medical icons
+import { FaCalendarCheck, FaCalendarAlt, FaSignOutAlt, FaUserCircle } from 'react-icons/fa'; // Medical icons
 import { useAuth } from '../context/AuthContext';
 
 const Layout = () => {
@@ -54,6 +54,17 @@ const Layout = () => {
                             <FaCalendarCheck className="text-xl text-blue-600" />
                             <span>My Appointments</span>
                         </Link>
+                        </li>
+
+                        {/* Account */}
+                        <li>
+                            <Link
+                                to="/account"
+                                className="w-full text-left px-4 py-3 hover:bg-green-100 rounded-lg text-gray-700 font-medium flex items-center space-x-3"
+                            >
+                                <FaUserCircle className="text-xl text-purple-600" />
+                                <span>Account</span>
+                            </Link>
                         </li>
                     </ul>
                 </div>

@@ -37,7 +37,7 @@ const Login = () => {
                 // Call login function from AuthContext with token
                 login({ email: formData.email, token: data.token });
 
-                navigate('/dashboard');  // Redirect to dashboard
+                navigate('/account');  // Redirect to dashboard
             } else {
                 throw new Error('Token not received');
             }
