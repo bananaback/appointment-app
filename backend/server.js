@@ -12,7 +12,7 @@ const app = express();
 // CORS configuration
 app.use(cors({
     origin: 'http://localhost:5173', // Allow your frontend domain
-    methods: 'GET,POST,PUT,DELETE', // Allow specific methods
+    methods: 'GET,POST,PUT,DELETE,PATCH', // Allow specific methods
     allowedHeaders: 'Content-Type, Authorization', // Allow specific headers
     credentials: true, // Allow cookies to be sent along with the requests
 }));

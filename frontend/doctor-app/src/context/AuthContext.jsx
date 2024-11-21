@@ -1,39 +1,35 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [token, setToken] = useState(null);
-    const [loading, setLoading] = useState(true);  // Add loading state
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    // Check localStorage for the token when the app starts
     useEffect(() => {
         const savedToken = localStorage.getItem('authToken');
-        if (savedToken) {
-            setToken(savedToken);  // If token exists, set it
+
+        if (savedToken ) {
+            setToken(savedToken);
         }
-        setLoading(false);  // Set loading to false after checking
+        setLoading(false);
     }, []);
 
     const login = (token) => {
-        // Clear previous session (if any)
-        localStorage.removeItem('authToken'); // Remove previous token
-        // Store the token in localStorage
-        setToken(token);  // Update state with the new token
-        localStorage.setItem('authToken', token); // Store in localStorage
+        localStorage.setItem('authToken', token);
 
-        // Navigate to the dashboard
+        setToken(token);
+
         navigate('/dashboard');
     };
 
     const logout = () => {
-        // Clear user session
-        setToken(null); // Clear the current token
-        localStorage.removeItem('authToken'); // Remove token from localStorage
+        localStorage.removeItem('authToken');
 
-        // Redirect to login page
+        setToken(null);
+
         navigate('/login');
     };
 
@@ -44,6 +40,5 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-export const useAuth = () => {
-    return useContext(AuthContext);
-};
+export default AuthContext;
+
