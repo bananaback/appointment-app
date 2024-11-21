@@ -27,20 +27,34 @@ export const createWorkShift = async (req, res) => {
 // Get all work shifts, with optional filtering by doctorId or availability
 export const getAllWorkShifts = async (req, res) => {
     try {
+        // Extract role and user ID from req.user
+        const { role, _id: userId } = req.user;
         const { doctorId, available } = req.query;
+
         let filter = {};
 
-        if (doctorId) filter.doctor = doctorId;
-        if (available) filter.isReserved = available === 'false';  // true if reserved, false if available
+        // Apply filtering for doctors
+        if (role === 'Doctor') 
+            filter.doctor = userId; // Only allow viewing work shifts for the logged-in doctor
 
+        // Apply availability filter
+        if (available) filter.isReserved = available === 'false'; // true if reserved, false if available
+
+        // Fetch work shifts based on the filter
         const workShifts = await WorkShift.find(filter)
-            .populate('doctor', 'firstName lastName');
+            .populate('doctor', 'firstName lastName')
+            .populate({
+                path: 'appointment',
+                populate: { path: 'patient', select: 'firstName lastName medicalHistory' },
+            });
 
         res.status(200).json(workShifts);
     } catch (error) {
+        console.error('Error fetching work shifts:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
+
 
 // Get a specific work shift by ID (Admin, Doctor, or Patient)
 export const getWorkShiftById = async (req, res) => {
