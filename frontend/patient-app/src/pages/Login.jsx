@@ -45,8 +45,8 @@ const Login = () => {
                 // Call login from AuthContext to save token and userId
                 login(data.token, data.userId);
 
-                // Redirect to dashboard
-                navigate('/dashboard');
+                navigate('/account');  // Redirect to dashboard
+
             } else {
                 throw new Error('Invalid server response: Missing token or userId');
             }

@@ -92,13 +92,17 @@ export const getAllAppointments = async (req, res) => {
 
         // Truy vấn các cuộc hẹn dựa trên bộ lọc
         const appointments = await Appointment.find(filter)
-            .populate('patient', 'firstName lastName email phone') // Thông tin bệnh nhân
+
+            .populate('patient', 'firstName lastName email phone') // Patient details
             .populate({
                 path: 'workShift',
-                select: 'date timeSlot',
-                populate: { path: 'doctor', select: 'firstName lastName email phone' } // Thông tin bác sĩ
-            })
-            .sort({ requestDate: -1 }); // Sắp xếp theo requestDate (mới nhất trước)
+                populate: {
+                    path: 'doctor',
+                    select: 'firstName lastName email phone docAvatar specialty'
+                },
+                select: 'date timeSlot'
+            }) // Work shift details
+            .sort({ requestDate: -1 }); // Sort by request date (latest first)
 
 
         res.status(200).json({ success: true, appointments });

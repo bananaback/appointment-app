@@ -4,8 +4,8 @@ import { isAuthenticated } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// GET all doctors (Admin only)
-router.get('/', isAuthenticated(['Admin']), getDoctors);
+// GET all doctors
+router.get('/', isAuthenticated(['Admin', 'Patient']), getDoctors);
 
 // GET single doctor by ID
 router.get('/:id', isAuthenticated(['Admin', 'Doctor']), getDoctorById);
