@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import Dashboard from './pages/Dashboard.jsx'
 import WorkShifts from './pages/WorkShifts.jsx'
 import AppointmentDetail from './pages/AppointmentDetail.jsx';
+import Profile from './pages/Profile.jsx';
 import Layout from './components/Layout';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/workshifts" element={<WorkShifts />} />
             <Route path="/appointments/:id" element={<AppointmentDetail />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
       </Routes>

@@ -76,18 +76,14 @@ const AppointmentDetail = () => {
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-semibold mb-4">Appointment Detail</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-[#0B6477]">Appointment Detail</h2>
             <p>
                 <strong>Patient:</strong>{" "}
-                {`${appointment?.patient?.firstName || "N/A"} ${
-                    appointment?.patient?.lastName || ""
-                }`}
+                {`${appointment?.patient?.firstName || "N/A"} ${appointment?.patient?.lastName || ""}`}
             </p>
             <p>
                 <strong>Doctor:</strong>{" "}
-                {`${appointment?.workShift?.doctor?.firstName || "N/A"} ${
-                    appointment?.workShift?.doctor?.lastName || ""
-                }`}
+                {`${appointment?.workShift?.doctor?.firstName || "N/A"} ${appointment?.workShift?.doctor?.lastName || ""}`}
             </p>
             <p>
                 <strong>Date:</strong>{" "}
@@ -103,7 +99,7 @@ const AppointmentDetail = () => {
                 <select
                     value={status}
                     onChange={(e) => handleStatusChange(e.target.value)}
-                    className="border rounded p-2 mt-2"
+                    className="border rounded p-2 mt-2 text-[#14919B] border-[#14919B]"
                     disabled={updating}
                 >
                     <option value="Pending">Pending</option>
@@ -111,7 +107,7 @@ const AppointmentDetail = () => {
                     <option value="Rejected">Rejected</option>
                     <option value="Done">Done</option>
                 </select>
-                {updating && <span className="text-sm text-gray-500 ml-2">Updating...</span>}
+                {updating && <span className="text-sm text-[#0B6477] ml-2">Updating...</span>}
             </p>
             <p>
                 <strong>Notes:</strong> {appointment?.notes || "No notes provided"}
@@ -121,6 +117,7 @@ const AppointmentDetail = () => {
 };
 
 export default AppointmentDetail;
+
 
 
 

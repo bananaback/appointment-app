@@ -44,35 +44,41 @@ export const createAppointment = async (req, res) => {
 
 export const getAllAppointments = async (req, res) => {
     try {
-        const { startDate, endDate } = req.query; // Optional date range filters
-        const userId = req.user.id; // The currently authenticated user's ID
+        const { startDate, endDate } = req.query; // Bộ lọc khoảng thời gian tùy chọn
+        const user = req.user; // Thông tin user từ middleware isAuthenticated
 
-        // Get the user's role from the database to verify
-        const user = await UserAccount.findById(userId);
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
 
-        const userRole = user.role; // The role of the current user (Patient/Doctor)
+        const { id: userId, role: userRole } = user; // Lấy ID và vai trò của user
 
         let filter = {};
 
-        if (userRole === 'Patient') {
-            // Patients should see their own appointments
+        // Admin có thể xem tất cả các cuộc hẹn
+        if (userRole === 'Admin') {
+            filter = {};
+        } else if (userRole === 'Patient') {
+            // Patient chỉ được xem các cuộc hẹn của chính họ
             filter.patient = userId;
-
         } else if (userRole === 'Doctor') {
-            // Doctors should see appointments where they are assigned
+            // Doctor chỉ được xem các cuộc hẹn liên quan đến họ thông qua workShift
             const workShifts = await WorkShift.find({ doctor: userId });
 
             if (!workShifts.length) {
-                return res.status(404).json({ message: 'No work shifts found for this doctor.' });
+                return res.status(404).json({
+                    success: false,
+                    message: 'No work shifts found for this doctor.'
+                });
             }
 
             filter.workShift = { $in: workShifts.map(ws => ws._id) };
+        } else {
+            // Vai trò không được phép
+            return res.status(403).json({ success: false, message: 'Access denied' });
         }
 
-        // Apply date range filtering
+        // Áp dụng bộ lọc ngày (nếu có)
         if (startDate || endDate) {
             filter.requestDate = {};
             if (startDate) {
@@ -83,17 +89,21 @@ export const getAllAppointments = async (req, res) => {
             }
         }
 
-        // Fetch appointments based on the filter
+        // Truy vấn các cuộc hẹn dựa trên bộ lọc
         const appointments = await Appointment.find(filter)
-            .populate('patient', 'firstName lastName email phone') // Patient details
-            .populate('workShift', 'date timeSlot') // Work shift details
-            .sort({ requestDate: -1 }); // Sort by request date (latest first)
+            .populate('patient', 'firstName lastName email phone') // Thông tin bệnh nhân
+            .populate({
+                path: 'workShift',
+                select: 'date timeSlot',
+                populate: { path: 'doctor', select: 'firstName lastName email phone' } // Thông tin bác sĩ
+            })
+            .sort({ requestDate: -1 }); // Sắp xếp theo requestDate (mới nhất trước)
 
         res.status(200).json({ success: true, appointments });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ success: false, message: 'Server error', error });
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
     }
 };
 
@@ -152,7 +162,7 @@ export const updateAppointmentStatus = async (req, res) => {
         await appointment.save();
 
         // Step 7: Respond with the updated status
-        res.status(200).json({ message: `Appointment status updated to ${status}` });
+        res.status(200).json({ message: `Appointment status updated to ${status}`, appointment });
 
     } catch (error) {
         // Log the error and send a 500 server error response
@@ -170,8 +180,12 @@ export const getAppointmentById = async (req, res) => {
         // Fetch the appointment from the database and populate related fields
         const appointment = await Appointment.findById(appointmentId)
             .populate('patient', 'firstName lastName email phone')  // Patient details
-            .populate('workShift', 'date timeSlot')  // Work shift details
-            .populate('doctor', 'firstName lastName email phone')  // Doctor details (if needed)
+            .populate({
+                path: 'workShift',
+                select: 'date timeSlot',
+                populate: { path: 'doctor', select: 'firstName lastName email phone' }
+            })  // Work shift details
+
             .exec();
 
         if (!appointment) {

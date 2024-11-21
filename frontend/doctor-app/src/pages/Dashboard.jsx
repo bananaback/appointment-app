@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import Clock from "../components/Clock";
 
 const Dashboard = () => {
-    const { userId } = useAuth();
-    const [userInfo, setUserInfo] = useState(null); // Thông tin người dùng
+    const [userInfo, setUserInfo] = useState(null);
     const [appointments, setAppointments] = useState([]);
     const [filteredAppointments, setFilteredAppointments] = useState([]);
     const [startDate, setStartDate] = useState('');
@@ -23,41 +22,29 @@ const Dashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const appointmentsPerPage = 5;
 
-    // Gọi API để lấy thông tin người dùng
+    // Fetch user info
     useEffect(() => {
         const fetchUserInfo = async () => {
-            console.log("Fetching user information...");
             try {
-                const { data } = await axios.get(
-                    `http://localhost:4000/auth/users/${userId}`,
-                    { withCredentials: true }
-                );
-                console.log("User information fetched successfully:", data);
+                const { data } = await axios.get(`http://localhost:4000/auth/profile`, { withCredentials: true });
                 setUserInfo(data.user);
             } catch (error) {
                 console.error("Error fetching user information:", error);
             }
         };
+        fetchUserInfo();
+    }, []);
 
-        if (userId) {
-            fetchUserInfo();
-        }
-    }, [userId]);
-
+    // Fetch appointments
     useEffect(() => {
         const fetchAppointments = async () => {
-            console.log("Starting to fetch appointments...");
             try {
-                const { data } = await axios.get(
-                    "http://localhost:4000/appointments",
-                    { withCredentials: true }
-                );
-                console.log("Appointments data fetched successfully:", data);
+                const { data } = await axios.get("http://localhost:4000/appointments", { withCredentials: true });
                 setAppointments(data.appointments);
 
-                // Lọc các cuộc hẹn trong ngày hôm nay
+                // Filter today's appointments
                 const today = new Date();
-                const todayAppointments = data.appointments.filter((appointment) => {
+                const todayAppointments = data.appointments.filter(appointment => {
                     const appointmentDate = new Date(appointment.workShift.date);
                     return (
                         appointmentDate.getDate() === today.getDate() &&
@@ -66,9 +53,9 @@ const Dashboard = () => {
                     );
                 });
 
-                setFilteredAppointments(todayAppointments); // Đặt danh sách lọc là các cuộc hẹn hôm nay
+                setFilteredAppointments(todayAppointments);
 
-                // Tính toán trạng thái cho các cuộc hẹn hôm nay
+                // Update status counts
                 const counts = todayAppointments.reduce((acc, appointment) => {
                     acc[appointment.status] = (acc[appointment.status] || 0) + 1;
                     return acc;
@@ -84,133 +71,122 @@ const Dashboard = () => {
     }, []);
 
     const filterAppointments = () => {
-        let filter = {};
-
-        if (startDate) {
-            filter.startDate = new Date(startDate);
-        }
-
-        if (endDate) {
-            filter.endDate = new Date(endDate);
-        }
-
-        if (status) {
-            filter.status = status;
-        }
-
-        const filtered = appointments.filter((appointment) => {
+        const filtered = appointments.filter(appointment => {
             const appointmentDate = new Date(appointment.workShift.date);
 
-            const isAfterStartDate = filter.startDate ? appointmentDate >= filter.startDate : true;
-            const isBeforeEndDate = filter.endDate ? appointmentDate <= filter.endDate : true;
-            const matchesStatus = filter.status ? appointment.status === filter.status : true;
+            const isAfterStartDate = startDate ? appointmentDate >= new Date(startDate) : true;
+            const isBeforeEndDate = endDate ? appointmentDate <= new Date(endDate) : true;
+            const matchesStatus = status ? appointment.status === status : true;
 
             return isAfterStartDate && isBeforeEndDate && matchesStatus;
         });
 
         setFilteredAppointments(filtered);
-        setCurrentPage(1); // Reset về trang đầu sau khi lọc
+        setCurrentPage(1);
+
+        const counts = filtered.reduce((acc, appointment) => {
+            acc[appointment.status] = (acc[appointment.status] || 0) + 1;
+            return acc;
+        }, { Pending: 0, Accepted: 0, Rejected: 0, Done: 0 });
+
+        setStatusCounts(counts);
     };
 
-    const handleRowClick = (appointmentId) => {
+    const handleRowClick = appointmentId => {
         navigate(`/appointments/${appointmentId}`);
     };
 
     const indexOfLastAppointment = currentPage * appointmentsPerPage;
     const indexOfFirstAppointment = indexOfLastAppointment - appointmentsPerPage;
-    const currentAppointments = filteredAppointments.slice(
-        indexOfFirstAppointment,
-        indexOfLastAppointment
-    );
+    const currentAppointments = filteredAppointments.slice(indexOfFirstAppointment, indexOfLastAppointment);
     const totalPages = Math.ceil(filteredAppointments.length / appointmentsPerPage);
 
     const handleNextPage = () => {
         if (currentPage < totalPages) {
-            setCurrentPage((prevPage) => prevPage + 1);
+            setCurrentPage(prevPage => prevPage + 1);
         }
     };
 
     const handlePreviousPage = () => {
         if (currentPage > 1) {
-            setCurrentPage((prevPage) => prevPage - 1);
+            setCurrentPage(prevPage => prevPage - 1);
         }
     };
 
     return (
         <div className="bg-gray-100 h-full py-10 px-4">
             <div className="max-w-7xl mx-auto">
+                <Clock />
                 <div className="mb-8">
-                    <h1 className="text-3xl font-semibold text-gray-800">Dashboard</h1>
-                    <p className="text-lg text-gray-600">Overview of the system.</p>
+                    <h1 className="text-3xl font-semibold text-[#0B6477]">Dashboard</h1>
+                    <p className="text-lg text-[#118AB2]">Overview of the system.</p>
                 </div>
-
+    
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-                        <h2 className="text-xl font-semibold text-gray-700">Hello, Doctor</h2>
-                        <p className="text-gray-500 mt-2">Welcome back!</p>
-                        <div className="mt-4 text-2xl font-bold text-blue-600">
+                    <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-[#0AD1C8]">
+                        <h2 className="text-xl font-semibold text-[#0B6477]">Hello, Doctor</h2>
+                        <p className="text-[#118AB2] mt-2">Welcome back!</p>
+                        <div className="mt-4 text-2xl font-bold text-[#0AD1C8]">
                             {userInfo?.firstName} {userInfo?.lastName}
                         </div>
                     </div>
-
-                    <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-                        <h2 className="text-xl font-semibold text-gray-700">Total Appointments</h2>
-                        <p className="text-gray-500 mt-2">Number of appointments today</p>
-                        <div className="mt-4 text-2xl font-bold text-green-600">{filteredAppointments.length}</div>
+    
+                    <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-[#0AD1C8]">
+                        <h2 className="text-xl font-semibold text-[#0B6477]">Total Appointments</h2>
+                        <p className="text-[#118AB2] mt-2">Number of appointments today</p>
+                        <div className="mt-4 text-2xl font-bold text-[#0AD1C8]">{filteredAppointments.length}</div>
                     </div>
-
-
-                    <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-                        <h2 className="text-xl font-semibold text-gray-700">Appointment Status</h2>
+    
+                    <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-[#0AD1C8]">
+                        <h2 className="text-xl font-semibold text-[#0B6477]">Appointment Status</h2>
                         <div className="mt-4">
                             <div className="flex justify-between items-center">
-                                <span className="text-lg text-gray-600">Pending:</span>
-                                <span className="text-xl font-bold text-yellow-600">{statusCounts.Pending}</span>
+                                <span className="text-lg text-[#118AB2]">Pending:</span>
+                                <span className="text-xl font-bold text-[#0AD1C8]">{statusCounts.Pending}</span>
                             </div>
                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-lg text-gray-600">Accepted:</span>
-                                <span className="text-xl font-bold text-green-600">{statusCounts.Accepted}</span>
+                                <span className="text-lg text-[#118AB2]">Accepted:</span>
+                                <span className="text-xl font-bold text-[#0B6477]">{statusCounts.Accepted}</span>
                             </div>
                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-lg text-gray-600">Rejected:</span>
+                                <span className="text-lg text-[#118AB2]">Rejected:</span>
                                 <span className="text-xl font-bold text-red-600">{statusCounts.Rejected}</span>
                             </div>
                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-lg text-gray-600">Done:</span>
-                                <span className="text-xl font-bold text-green-700">{statusCounts.Done}</span>
+                                <span className="text-lg text-[#118AB2]">Done:</span>
+                                <span className="text-xl font-bold text-[#0B6477]">{statusCounts.Done}</span>
                             </div>
                         </div>
                     </div>
-
                 </div>
-
+    
                 <div className="mb-8">
-                    <h2 className="text-xl font-semibold text-gray-700">Filter Appointments</h2>
+                    <h2 className="text-xl font-semibold text-[#0B6477]">Filter Appointments</h2>
                     <div className="flex space-x-4 mt-4">
                         <div>
-                            <label className="block text-gray-600 mb-2">Start Date</label>
+                            <label className="block text-[#118AB2] mb-2">Start Date</label>
                             <input
                                 type="date"
-                                className="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                className="border-[#0AD1C8] rounded-lg shadow-sm focus:border-[#118AB2] focus:ring-[#118AB2] px-4 py-3 text-lg"
                                 value={startDate}
                                 onChange={(e) => setStartDate(e.target.value)}
                             />
                         </div>
-
+    
                         <div>
-                            <label className="block text-gray-600 mb-2">End Date</label>
+                            <label className="block text-[#118AB2] mb-2">End Date</label>
                             <input
                                 type="date"
-                                className="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                className="border-[#0AD1C8] rounded-lg shadow-sm focus:border-[#118AB2] focus:ring-[#118AB2] px-4 py-3 text-lg"
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                             />
                         </div>
-
+    
                         <div>
-                            <label className="block text-gray-600 mb-2">Status</label>
+                            <label className="block text-[#118AB2] mb-2">Status</label>
                             <select
-                                className="border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                className="border-[#0AD1C8] rounded-lg shadow-sm focus:border-[#118AB2] focus:ring-[#118AB2] px-4 py-3 text-lg"
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
                             >
@@ -221,36 +197,36 @@ const Dashboard = () => {
                                 <option value="Done">Done</option>
                             </select>
                         </div>
-
+    
                         <div className="self-end">
                             <button
                                 onClick={filterAppointments}
-                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                className="px-6 py-3 bg-[#0AD1C8] text-white text-lg rounded-lg hover:bg-[#0B6477] transition"
                             >
                                 Apply Filters
                             </button>
                         </div>
                     </div>
                 </div>
-
+    
                 <div className="mt-8">
-                    <h2 className="text-2xl font-semibold text-gray-700 mb-4">Appointment List</h2>
+                    <h2 className="text-2xl font-semibold text-[#0B6477] mb-4">Appointment List</h2>
                     {filteredAppointments.length > 0 ? (
-                        <div className="bg-white p-6 rounded-lg shadow-lg overflow-x-auto">
+                        <div className="bg-white p-6 rounded-lg shadow-lg overflow-x-auto border border-[#0AD1C8]">
                             <table className="min-w-full border-collapse">
                                 <thead>
                                     <tr>
-                                        <th className="border-b-2 border-gray-200 px-4 py-2 text-left">Patient</th>
-                                        <th className="border-b-2 border-gray-200 px-4 py-2 text-left">Time Slot</th>
-                                        <th className="border-b-2 border-gray-200 px-4 py-2 text-left">Date</th>
-                                        <th className="border-b-2 border-gray-200 px-4 py-2 text-left">Status</th>
+                                        <th className="border-b-2 border-[#118AB2] px-4 py-2 text-left">Patient</th>
+                                        <th className="border-b-2 border-[#118AB2] px-4 py-2 text-left">Time Slot</th>
+                                        <th className="border-b-2 border-[#118AB2] px-4 py-2 text-left">Date</th>
+                                        <th className="border-b-2 border-[#118AB2] px-4 py-2 text-left">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {currentAppointments.map((appointment, index) => (
                                         <tr
                                             key={index}
-                                            className="border-b border-gray-200 cursor-pointer hover:bg-gray-100"
+                                            className="border-b border-gray-200 cursor-pointer hover:bg-[#0AD1C8]/20"
                                             onClick={() => handleRowClick(appointment._id)}
                                         >
                                             <td className="px-4 py-2">
@@ -264,11 +240,11 @@ const Dashboard = () => {
                                                 className={`px-4 py-2 font-semibold ${appointment.status === "Rejected"
                                                     ? "text-red-600"
                                                     : appointment.status === "Pending"
-                                                        ? "text-yellow-600"
+                                                        ? "text-[#0AD1C8]"
                                                         : appointment.status === "Accepted"
-                                                            ? "text-green-600"
+                                                            ? "text-[#0B6477]"
                                                             : appointment.status === "Done"
-                                                                ? "text-green-700"
+                                                                ? "text-[#118AB2]"
                                                                 : "text-gray-600"
                                                     }`}
                                             >
@@ -278,13 +254,13 @@ const Dashboard = () => {
                                     ))}
                                 </tbody>
                             </table>
-
                             <div className="flex justify-between items-center mt-4">
                                 <button
                                     onClick={handlePreviousPage}
                                     disabled={currentPage === 1}
-                                    className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-                                        }`}
+                                    className={`px-4 py-2 bg-[#0AD1C8] text-white rounded-lg hover:bg-[#0B6477] transition ${
+                                        currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                                    }`}
                                 >
                                     Previous
                                 </button>
@@ -294,20 +270,21 @@ const Dashboard = () => {
                                 <button
                                     onClick={handleNextPage}
                                     disabled={currentPage === totalPages}
-                                    className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
-                                        }`}
+                                    className={`px-4 py-2 bg-[#0AD1C8] text-white rounded-lg hover:bg-[#0B6477] transition ${
+                                        currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                                    }`}
                                 >
                                     Next
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <p className="text-gray-500 mt-4">No appointments found.</p>
+                        <p className="text-[#118AB2] mt-4">No appointments found.</p>
                     )}
                 </div>
             </div>
         </div>
-    );
+    );    
 };
 
 export default Dashboard;

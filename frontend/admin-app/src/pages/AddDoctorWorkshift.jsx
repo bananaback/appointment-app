@@ -164,7 +164,8 @@ const AddDoctorWorkshift = () => {
                                 .map((shift) => (
                                     <div
                                         key={shift._id}
-                                        className="bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:bg-indigo-50 transition duration-300"
+                                        onClick={() => window.location.href = `/workshifts/${shift._id}`}
+                                        className="cursor-pointer bg-white p-4 rounded-lg shadow-md border border-gray-200 hover:bg-indigo-50 transition duration-300"
                                     >
                                         <div className="font-medium text-gray-700 text-lg mb-2">
                                             Doctor: {shift.doctor.firstName} {shift.doctor.lastName}
@@ -176,8 +177,7 @@ const AddDoctorWorkshift = () => {
                                             Time: {shift.timeSlot}
                                         </div>
                                         <div
-                                            className={`text-sm ${shift.isReserved ? 'text-red-500' : 'text-green-500'
-                                                } font-semibold`}
+                                            className={`text-sm ${shift.isReserved ? 'text-red-500' : 'text-green-500'} font-semibold`}
                                         >
                                             {shift.isReserved ? 'Reserved' : 'Available'}
                                         </div>
@@ -185,6 +185,7 @@ const AddDoctorWorkshift = () => {
                                 ))}
                         </div>
                     </div>
+
 
                 </div>
 

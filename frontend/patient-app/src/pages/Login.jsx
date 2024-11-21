@@ -5,49 +5,60 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png'; // Import the logo
 
 const Login = () => {
-    const [formData, setFormData] = useState({ email: '', password: '' });
-    const [error, setError] = useState(null);
-    const { login } = useAuth(); // Access login function from AuthContext
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const { login } = useAuth(); // Assuming login function is provided from AuthContext
     const navigate = useNavigate();
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prevData => ({ ...prevData, [name]: value }));
-    };
-
-    const handleSubmit = async (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
+
         try {
+            console.log('Attempting login...'); // Debug log
+
+            // Send login request to API
             const response = await fetch('http://localhost:4000/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({ email, password }),
+                credentials: 'include', // Send cookies if needed
             });
 
+            console.log('Response status:', response.status); // Log response status
+
+            // Handle unsuccessful response
             if (!response.ok) {
-                throw new Error('Invalid credentials');
+                const errorData = await response.json();
+                console.error('Error details from server:', errorData); // Debug server error
+                throw new Error(errorData.message || 'Invalid email or password');
             }
 
+            // Parse JSON response
             const data = await response.json();
+            console.log('Login successful, received data:', data); // Log response data
 
-            // Check if token exists in response
-            if (data.token) {
-                // Call login function from AuthContext with token
-                login({ email: formData.email, token: data.token });
+            // Validate response data
+            if (data.token && data.userId) {
+                // Call login from AuthContext to save token and userId
+                login(data.token, data.userId);
 
-                navigate('/dashboard');  // Redirect to dashboard
+                // Redirect to dashboard
+                navigate('/dashboard');
             } else {
-                throw new Error('Token not received');
+                throw new Error('Invalid server response: Missing token or userId');
             }
-        } catch (error) {
-            setError(error.message);
+        } catch (err) {
+            // Handle errors and display error messages
+            console.error('Error during login:', err.message || err); // Debug log
+            setError(err.message || 'An error occurred during login'); // Update error state
         }
     };
 
     const handleNavigateToRegister = () => {
-        navigate('/register'); // Redirect to the register page
+        navigate('/register'); // Redirect to register page
     };
 
     return (
@@ -58,15 +69,14 @@ const Login = () => {
             <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
                 <h2 className="text-4xl font-semibold text-[#0B6477] mb-6 text-center">Login</h2>
                 {error && <div className="text-red-500 text-center mb-4">{error}</div>}
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleLogin}>
                     <div className="mb-4">
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                         <input
                             type="email"
                             id="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             required
                             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -76,9 +86,8 @@ const Login = () => {
                         <input
                             type="password"
                             id="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             required
                             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -101,4 +110,3 @@ const Login = () => {
 };
 
 export default Login;
-

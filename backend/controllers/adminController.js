@@ -1,4 +1,75 @@
+import Appointment from '../models/Appointment.js';
 import UserAccount from '../models/UserAccount.js';
+import WorkShift from '../models/WorkShift.js';
+
+export const getDashboardStats = async (req, res) => {
+    try {
+        // Total Appointments
+        const totalAppointments = await Appointment.countDocuments();
+
+        // Appointments Today
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+
+        const appointmentsToday = await Appointment.countDocuments({
+            requestDate: { $gte: todayStart, $lte: todayEnd },
+        });
+
+        // Pending Appointments
+        const pendingAppointments = await Appointment.countDocuments({ status: 'Pending' });
+
+        // Total Doctors
+        const totalDoctors = await UserAccount.countDocuments({ role: 'Doctor' });
+
+        // Total Patients
+        const totalPatients = await UserAccount.countDocuments({ role: 'Patient' });
+
+        // Available Shifts
+        const availableShifts = await WorkShift.countDocuments({ isReserved: false });
+
+        // Appointments by Doctor
+        const doctorAppointments = await Appointment.aggregate([
+            { $lookup: { from: 'useraccounts', localField: 'workShift', foreignField: '_id', as: 'doctorDetails' } },
+            { $unwind: '$doctorDetails' },
+            { $group: { _id: '$doctorDetails.firstName', count: { $sum: 1 } } },
+            { $project: { doctor: '$_id', count: 1, _id: 0 } },
+        ]);
+
+        // Role Distribution
+        const roles = await UserAccount.aggregate([
+            { $group: { _id: '$role', count: { $sum: 1 } } },
+        ]);
+        const roleDistribution = roles.reduce((acc, role) => {
+            acc[role._id] = role.count;
+            return acc;
+        }, {});
+
+        // Recent Appointments
+        const recentAppointments = await Appointment.find()
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .populate('workShift', 'date timeSlot')
+            .populate('patient', 'firstName lastName email');
+
+        // Response
+        res.json({
+            totalAppointments,
+            appointmentsToday,
+            pendingAppointments,
+            totalDoctors,
+            totalPatients,
+            availableShifts,
+            doctorAppointments,
+            roleDistribution,
+            recentAppointments,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to fetch dashboard stats', error: error.message });
+    }
+};
 
 export const createAdminIfNotExist = async () => {
     try {

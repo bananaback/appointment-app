@@ -68,6 +68,26 @@ export const getUserInfo = async (req, res) => {
     }
 };
 
+export const getProfile = async (req, res) => {
+    try {
+        // Lấy thông tin người dùng từ req.user
+        const user = req.user;
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Loại bỏ trường password hoặc các trường nhạy cảm khác trước khi trả về
+        const { password, ...userData } = user.toObject();
+
+        // Trả về thông tin người dùng
+        return res.status(200).json({ success: true, user: userData });
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        return res.status(500).json({ success: false, message: 'An error occurred while fetching profile' });
+    }
+};
+
 
 export const register = async (req, res) => {
     const { firstName, lastName, email, phone, password, role, gender, dob, medicalHistory, specialty, experience, docAvatar } = req.body;
@@ -121,24 +141,30 @@ export const register = async (req, res) => {
 
 // Login
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body; // Thêm role vào body
     try {
-        const user = await User.findOne({ email }).select('+password');
+        const user = await User.findOne({ email }).select('+password +role'); // Lấy thêm role từ database
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
 
+        // Kiểm tra role
+        if (user.role !== role) {
+            return res.status(403).json({ success: false, message: 'Invalid email or password' });
+        }
+
         const token = generateToken(user);
 
-        // Send token in both the cookie and the response body
+        // Gửi token trong cookie và response body
         res
             .cookie('authToken', token, { httpOnly: true, secure: false })
             .status(200)
-            .json({ success: true, message: 'Logged in successfully', token, userId: user.id });  // Return token here
+            .json({ success: true, message: 'Logged in successfully', token}); // Trả thêm role nếu cần
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 
 // Logout

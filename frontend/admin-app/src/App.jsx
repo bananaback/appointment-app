@@ -7,6 +7,7 @@ import DoctorList from './pages/DoctorList'; // Doctor List Page
 import AddDoctor from './pages/AddDoctor'; // Add New Doctor Page
 import AddAdmin from './pages/AddAdmin'; // Add New Admin Page
 import EditDoctor from './pages/EditDoctor'; // Edit Doctor Page
+import WorkshiftDetails from './pages/WorkShiftDetails.jsx';
 import AddDoctorWorkshift from './pages/AddDoctorWorkshift.jsx';
 import Layout from './components/Layout'; // Layout component
 import PrivateRoute from './components/PrivateRoute.jsx'; // PrivateRoute for protected routes
@@ -30,6 +31,7 @@ function App() {
             <Route path="/add-admin" element={<AddAdmin />} />
             <Route path="/edit-doctor/:id" element={<EditDoctor />} />
             <Route path="/workshifts" element={<AddDoctorWorkshift />} />
+            <Route path="/workshifts/:id" element={<WorkshiftDetails />} />
           </Route>
         </Route>
       </Routes>
