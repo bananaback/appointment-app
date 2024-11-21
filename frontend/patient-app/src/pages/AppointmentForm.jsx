@@ -106,13 +106,19 @@ const Appointment = () => {
       if (response.status === 201) {
         toast.success("Appointment added successfully!");
 
-        // fetchAppointments(); // Trigger re-fetching the appointment list
+        // Clear form fields
+        setSelectedSpecialty(""); // Clear specialty
+        setSelectedDoctor(null); // Clear doctor
+        setAppointmentDate(new Date()); // Clear date
+        setNotes(""); // Clear notes
+        setSelectedWorkShift(""); // Clear work shift
       }
     } catch (error) {
       console.error("Error creating appointment:", error);
       toast.error("Error creating appointment. Please try again.");
     }
   };
+
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-md">
