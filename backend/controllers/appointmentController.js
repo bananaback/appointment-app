@@ -86,7 +86,14 @@ export const getAllAppointments = async (req, res) => {
         // Fetch appointments based on the filter
         const appointments = await Appointment.find(filter)
             .populate('patient', 'firstName lastName email phone') // Patient details
-            .populate('workShift', 'date timeSlot') // Work shift details
+            .populate({
+                path: 'workShift',
+                populate: {
+                    path: 'doctor',
+                    select: 'firstName lastName docAvatar specialty'
+                },
+                select: 'date timeSlot'
+            }) // Work shift details
             .sort({ requestDate: -1 }); // Sort by request date (latest first)
 
         res.status(200).json({ success: true, appointments });

@@ -4,30 +4,34 @@ import { useNavigate } from 'react-router-dom';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [token, setToken] = useState(null);
+    const [userId, setUserId] = useState(null);
     const [loading, setLoading] = useState(true);  // Add loading state
     const navigate = useNavigate();
 
+    // Check localStorage for the token when the app starts
     useEffect(() => {
-        const token = document.cookie.split('; ').find(row => row.startsWith('authToken='));
-        if (token) {
-            const userData = JSON.parse(localStorage.getItem('user'));
-            if (userData) {
-                setUser(userData);
-            }
+        const savedToken = localStorage.getItem('authToken');
+        const savedUserId = localStorage.getItem("userId");
+        if (savedToken) {
+            setToken(savedToken);  // If token exists, set it
+        }
+        if (savedUserId) {
+            setUserId(savedUserId);
         }
         setLoading(false);  // Set loading to false after checking
     }, []);
 
-    const login = (userData) => {
+    const login = (token, id) => {
         // Clear previous session (if any)
-        localStorage.removeItem('user');
-        document.cookie = 'authToken=; Max-Age=0'; // Remove any existing authToken from cookies
+        localStorage.removeItem('authToken'); // Remove previous token
+        localStorage.removeItem("userId");
+        // Store the token in localStorage
+        setToken(token);  // Update state with the new token
+        setUserId(id);
 
-        // Set new user data
-        setUser(userData);  // Assuming setUser updates the app's state with the user data
-        localStorage.setItem('user', JSON.stringify(userData)); // Store new user in localStorage
-        document.cookie = `authToken=${userData.token}; path=/`; // Store new authToken in cookies
+        localStorage.setItem('authToken', token); // Store in localStorage
+        localStorage.setItem("userId", id);
 
         // Navigate to the dashboard
         navigate('/dashboard');
@@ -35,16 +39,21 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         // Clear user session
-        setUser(null); // Clear the current user state
-        localStorage.removeItem('user'); // Remove user data from localStorage
-        document.cookie = 'authToken=; Max-Age=0'; // Remove the authToken cookie by setting its Max-Age to 0
+        setToken(null); // Clear the current token state first
+        setUserId(null);
 
-        // Redirect to login page
-        navigate('/login');
+        localStorage.removeItem('authToken'); // Then remove token from localStorage
+        localStorage.removeItem("userId");
+
+        // Ensure navigation happens after token is cleared
+        setTimeout(() => {
+            navigate('/login');
+        }, 0); // Add a slight delay to ensure state updates propagate
     };
 
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ token, userId, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
