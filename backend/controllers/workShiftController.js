@@ -24,21 +24,36 @@ export const createWorkShift = async (req, res) => {
     }
 };
 
-// Get all work shifts, with optional filtering by doctorId or availability
+// Get all work shifts, with optional filtering by doctorId, date, or availability
 export const getAllWorkShifts = async (req, res) => {
     try {
         // Extract role and user ID from req.user
         const { role, _id: userId } = req.user;
-        const { doctorId, available } = req.query;
+        const { doctorId, available, date } = req.query;
 
         let filter = {};
 
-        // Apply filtering for doctors
-        if (role === 'Doctor') 
+        // Apply filtering for logged-in doctor's role
+        if (role === 'Doctor') {
             filter.doctor = userId; // Only allow viewing work shifts for the logged-in doctor
+        } else if (doctorId) {
+            filter.doctor = doctorId; // Allow filtering by a specific doctorId
+        }
 
         // Apply availability filter
-        if (available) filter.isReserved = available === 'false'; // true if reserved, false if available
+        if (available) {
+            filter.isReserved = available === 'false'; // Filter by reservation status
+        }
+
+        // Apply date filter
+        if (date) {
+            // Match the date, ignoring the time part
+            const parsedDate = new Date(date);
+            filter.date = {
+                $gte: new Date(parsedDate.setHours(0, 0, 0, 0)), // Start of the day
+                $lte: new Date(parsedDate.setHours(23, 59, 59, 999)), // End of the day
+            };
+        }
 
         // Fetch work shifts based on the filter
         const workShifts = await WorkShift.find(filter)

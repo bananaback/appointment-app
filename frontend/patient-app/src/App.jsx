@@ -9,7 +9,7 @@ import PrivateRoute from './components/PrivateRoute';
 import AppointmentForm from './pages/AppointmentForm';
 import Layout from './components/Layout';
 import MyAppointments from './pages/MyAppointments';
-import Account from './pages/Account';
+import Profile from './pages/Profile.jsx'
 
 function App() {
   return (
@@ -27,7 +27,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/schedule-appointment" element={<AppointmentForm />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
-            <Route path="account" element={<Account />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
 

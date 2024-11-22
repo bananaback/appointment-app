@@ -238,12 +238,13 @@ export const deleteAppointment = async (req, res) => {
         if (appointment.status !== 'Pending') {
             return res.status(400).json({ message: 'Only pending appointments can be deleted' });
         }
-
+        
+        const workShift = appointment.workShift;
+        
         // Delete the appointment
-        await appointment.remove();
+        await appointment.deleteOne();
 
         // Update the work shift to mark it as available (isReserved = false)
-        const workShift = appointment.workShift;
         workShift.isReserved = false;  // Mark work shift as available
         workShift.appointment = null;  // Remove the appointment reference
         await workShift.save();
