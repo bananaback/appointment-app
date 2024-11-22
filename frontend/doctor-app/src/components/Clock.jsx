@@ -8,7 +8,7 @@ const Clock = () => {
             setTime(new Date());
         }, 1000);
 
-        return () => clearInterval(timer); // Dọn dẹp khi component bị hủy
+        return () => clearInterval(timer); 
     }, []);
 
     return (

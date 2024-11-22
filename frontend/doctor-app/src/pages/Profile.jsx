@@ -64,10 +64,6 @@ const Profile = () => {
                         <span className="text-[#0AD1C8]">{userInfo?.phone || "N/A"}</span>
                     </p>
                     <p className="text-[#118AB2] flex items-center">
-                        <span className="font-semibold w-32 text-[#0B6477]">Address:</span>
-                        <span className="text-[#0AD1C8]">{userInfo?.address || "N/A"}</span>
-                    </p>
-                    <p className="text-[#118AB2] flex items-center">
                         <span className="font-semibold w-32 text-[#0B6477]">Gender:</span>
                         <span className="text-[#0AD1C8]">{userInfo?.gender || "N/A"}</span>
                     </p>

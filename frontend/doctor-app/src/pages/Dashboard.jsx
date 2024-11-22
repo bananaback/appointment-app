@@ -6,7 +6,6 @@ import Clock from "../components/Clock";
 const Dashboard = () => {
     const [userInfo, setUserInfo] = useState(null);
     const [appointments, setAppointments] = useState([]);
-    const [filteredAppointments, setFilteredAppointments] = useState([]);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [status, setStatus] = useState('');
@@ -35,71 +34,44 @@ const Dashboard = () => {
         fetchUserInfo();
     }, []);
 
-    // Fetch appointments
+    // Fetch appointments with filters
+    const fetchAppointments = async () => {
+        try {
+            const { data } = await axios.get("http://localhost:4000/appointments", {
+                withCredentials: true,
+                params: { startDate, endDate, status },
+            });
+
+            setAppointments(data.appointments);
+
+            // Update status counts
+            const counts = data.appointments.reduce((acc, appointment) => {
+                acc[appointment.status] = (acc[appointment.status] || 0) + 1;
+                return acc;
+            }, { Pending: 0, Accepted: 0, Rejected: 0, Done: 0 });
+
+            setStatusCounts(counts);
+        } catch (error) {
+            console.error("Error fetching appointments:", error);
+        }
+    };
+
+    // Fetch appointments on initial load and when filters change
     useEffect(() => {
-        const fetchAppointments = async () => {
-            try {
-                const { data } = await axios.get("http://localhost:4000/appointments", { withCredentials: true });
-                setAppointments(data.appointments);
-
-                // Filter today's appointments
-                const today = new Date();
-                const todayAppointments = data.appointments.filter(appointment => {
-                    const appointmentDate = new Date(appointment.workShift.date);
-                    return (
-                        appointmentDate.getDate() === today.getDate() &&
-                        appointmentDate.getMonth() === today.getMonth() &&
-                        appointmentDate.getFullYear() === today.getFullYear()
-                    );
-                });
-
-                setFilteredAppointments(todayAppointments);
-
-                // Update status counts
-                const counts = todayAppointments.reduce((acc, appointment) => {
-                    acc[appointment.status] = (acc[appointment.status] || 0) + 1;
-                    return acc;
-                }, { Pending: 0, Accepted: 0, Rejected: 0, Done: 0 });
-
-                setStatusCounts(counts);
-            } catch (error) {
-                console.error("Error fetching appointments:", error);
-            }
-        };
-
         fetchAppointments();
-    }, []);
+    }, [startDate, endDate, status]);
 
-    const filterAppointments = () => {
-        const filtered = appointments.filter(appointment => {
-            const appointmentDate = new Date(appointment.workShift.date);
-
-            const isAfterStartDate = startDate ? appointmentDate >= new Date(startDate) : true;
-            const isBeforeEndDate = endDate ? appointmentDate <= new Date(endDate) : true;
-            const matchesStatus = status ? appointment.status === status : true;
-
-            return isAfterStartDate && isBeforeEndDate && matchesStatus;
-        });
-
-        setFilteredAppointments(filtered);
-        setCurrentPage(1);
-
-        const counts = filtered.reduce((acc, appointment) => {
-            acc[appointment.status] = (acc[appointment.status] || 0) + 1;
-            return acc;
-        }, { Pending: 0, Accepted: 0, Rejected: 0, Done: 0 });
-
-        setStatusCounts(counts);
+    const handleResetFilters = () => {
+        setStartDate('');
+        setEndDate('');
+        setStatus('');
     };
 
-    const handleRowClick = appointmentId => {
-        navigate(`/appointments/${appointmentId}`);
-    };
-
+    // Pagination
     const indexOfLastAppointment = currentPage * appointmentsPerPage;
     const indexOfFirstAppointment = indexOfLastAppointment - appointmentsPerPage;
-    const currentAppointments = filteredAppointments.slice(indexOfFirstAppointment, indexOfLastAppointment);
-    const totalPages = Math.ceil(filteredAppointments.length / appointmentsPerPage);
+    const currentAppointments = appointments.slice(indexOfFirstAppointment, indexOfLastAppointment);
+    const totalPages = Math.ceil(appointments.length / appointmentsPerPage);
 
     const handleNextPage = () => {
         if (currentPage < totalPages) {
@@ -113,6 +85,10 @@ const Dashboard = () => {
         }
     };
 
+    const handleRowClick = appointmentId => {
+        navigate(`/appointments/${appointmentId}`);
+    };
+
     return (
         <div className="bg-gray-100 h-full py-10 px-4">
             <div className="max-w-7xl mx-auto">
@@ -121,7 +97,7 @@ const Dashboard = () => {
                     <h1 className="text-3xl font-semibold text-[#0B6477]">Dashboard</h1>
                     <p className="text-lg text-[#118AB2]">Overview of the system.</p>
                 </div>
-    
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-[#0AD1C8]">
                         <h2 className="text-xl font-semibold text-[#0B6477]">Hello, Doctor</h2>
@@ -130,13 +106,13 @@ const Dashboard = () => {
                             {userInfo?.firstName} {userInfo?.lastName}
                         </div>
                     </div>
-    
+
                     <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-[#0AD1C8]">
                         <h2 className="text-xl font-semibold text-[#0B6477]">Total Appointments</h2>
-                        <p className="text-[#118AB2] mt-2">Number of appointments today</p>
-                        <div className="mt-4 text-2xl font-bold text-[#0AD1C8]">{filteredAppointments.length}</div>
+                        <p className="text-[#118AB2] mt-2">Number of appointments</p>
+                        <div className="mt-4 text-2xl font-bold text-[#0AD1C8]">{appointments.length}</div>
                     </div>
-    
+
                     <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-[#0AD1C8]">
                         <h2 className="text-xl font-semibold text-[#0B6477]">Appointment Status</h2>
                         <div className="mt-4">
@@ -159,7 +135,7 @@ const Dashboard = () => {
                         </div>
                     </div>
                 </div>
-    
+
                 <div className="mb-8">
                     <h2 className="text-xl font-semibold text-[#0B6477]">Filter Appointments</h2>
                     <div className="flex space-x-4 mt-4">
@@ -172,7 +148,7 @@ const Dashboard = () => {
                                 onChange={(e) => setStartDate(e.target.value)}
                             />
                         </div>
-    
+
                         <div>
                             <label className="block text-[#118AB2] mb-2">End Date</label>
                             <input
@@ -182,7 +158,7 @@ const Dashboard = () => {
                                 onChange={(e) => setEndDate(e.target.value)}
                             />
                         </div>
-    
+
                         <div>
                             <label className="block text-[#118AB2] mb-2">Status</label>
                             <select
@@ -197,21 +173,21 @@ const Dashboard = () => {
                                 <option value="Done">Done</option>
                             </select>
                         </div>
-    
+
                         <div className="self-end">
                             <button
-                                onClick={filterAppointments}
+                                onClick={handleResetFilters}
                                 className="px-6 py-3 bg-[#0AD1C8] text-white text-lg rounded-lg hover:bg-[#0B6477] transition"
                             >
-                                Apply Filters
+                                Reset Filters
                             </button>
                         </div>
                     </div>
                 </div>
-    
+
                 <div className="mt-8">
                     <h2 className="text-2xl font-semibold text-[#0B6477] mb-4">Appointment List</h2>
-                    {filteredAppointments.length > 0 ? (
+                    {appointments.length > 0 ? (
                         <div className="bg-white p-6 rounded-lg shadow-lg overflow-x-auto border border-[#0AD1C8]">
                             <table className="min-w-full border-collapse">
                                 <thead>
@@ -279,14 +255,16 @@ const Dashboard = () => {
                             </div>
                         </div>
                     ) : (
-                        <p className="text-[#118AB2] mt-4">No appointments found.</p>
+                        <p className="text-lg text-[#118AB2]">No appointments found.</p>
                     )}
+
                 </div>
             </div>
         </div>
-    );    
+    );
 };
 
 export default Dashboard;
+
 
 
