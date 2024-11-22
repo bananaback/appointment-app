@@ -4,7 +4,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAuth } from "../context/AuthContext";
 
 const Appointment = () => {
   const [specialties, setSpecialties] = useState([]);
@@ -15,8 +14,6 @@ const Appointment = () => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [appointmentDate, setAppointmentDate] = useState(new Date());
   const [notes, setNotes] = useState("");
-
-  const { user, loading } = useAuth();
 
   // Fetch specialties (specialties)
   useEffect(() => {
@@ -63,13 +60,13 @@ const Appointment = () => {
   useEffect(() => {
     if (!selectedDoctor || !appointmentDate) {
       setWorkShifts([]);
-      return
-    };
+      return;
+    }
 
     const fetchWorkShifts = async () => {
       try {
         const response = await axios.get("http://localhost:4000/workshifts", {
-          params: { doctorId: selectedDoctor._id, date: appointmentDate},
+          params: { doctorId: selectedDoctor._id, date: appointmentDate },
           withCredentials: true,
         });
         setWorkShifts(response.data || []);
@@ -83,13 +80,12 @@ const Appointment = () => {
   }, [selectedDoctor, appointmentDate]);
 
   const handleAddAppointment = async () => {
-    if (!selectedWorkShift || !notes) {
-      toast.error("Please select a work shift and take notes!");
+    if (!selectedSpecialty || !selectedDoctor || !appointmentDate || !selectedWorkShift || !notes) {
+      toast.error("Please fill in all fields!");
       return;
     }
 
     const newAppointment = {
-      patientId: user._id,
       workShiftId: selectedWorkShift,
       notes: notes,
     };
@@ -118,7 +114,6 @@ const Appointment = () => {
       toast.error("Error creating appointment. Please try again.");
     }
   };
-
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-md">
@@ -212,7 +207,7 @@ const Appointment = () => {
         <div className="flex flex-wrap gap-2">
           {workShifts.length === 0 ? (
             <p className="text-sm text-gray-500">
-              Select a doctor and date to see time slots
+              Select a doctor and date to see time slots, or there's no time slots available.
             </p>
           ) : (
             workShifts.map((workShift) => (
@@ -253,7 +248,8 @@ const Appointment = () => {
       {/* Submit */}
       <button
         onClick={handleAddAppointment}
-        className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition-colors"
+        className="w-full py-3 font-medium rounded-lg"
+        style={{ backgroundColor: "#118AB2", color: "#FFFFFF" }}
       >
         Add Appointment
       </button>
@@ -262,7 +258,6 @@ const Appointment = () => {
       <ToastContainer position="top-center" autoClose={3000} />
     </div>
   );
-
 };
 
 export default Appointment;

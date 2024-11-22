@@ -17,43 +17,47 @@ const Login = () => {
         try {
             console.log('Attempting login...'); // Debug log
 
-            // Send login request to API
+            // Gửi yêu cầu đăng nhập đến API
             const response = await fetch('http://localhost:4000/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ email, password }),
-                credentials: 'include', // Send cookies if needed
+                body: JSON.stringify({ 
+                    email, 
+                    password, 
+                    role: 'Patient' // Thêm role mặc định 
+                }),
+                credentials: 'include', // Đảm bảo gửi cookie nếu cần
             });
 
-            console.log('Response status:', response.status); // Log response status
+            console.log('Response status:', response.status); // Ghi lại mã trạng thái
 
-            // Handle unsuccessful response
+            // Kiểm tra nếu phản hồi không thành công
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Error details from server:', errorData); // Debug server error
+                console.error('Error details from server:', errorData); // Debug lỗi từ server
                 throw new Error(errorData.message || 'Invalid email or password');
             }
 
-            // Parse JSON response
+            // Phân tích dữ liệu JSON từ phản hồi
             const data = await response.json();
-            console.log('Login successful, received data:', data); // Log response data
+            console.log('Login successful, received data:', data); // Log dữ liệu nhận được
 
-            // Validate response data
-            if (data.token && data.userId) {
-                // Call login from AuthContext to save token and userId
-                login(data.token, data.userId);
+            // Kiểm tra dữ liệu trả về
+            if (data.token ) {
+                // Gọi hàm login từ AuthContext để lưu token và userId
+                login(data.token);
 
-                navigate('/account');  // Redirect to dashboard
-
+                // Chuyển hướng người dùng đến trang dashboard
+                navigate("/schedule-appointment");
             } else {
                 throw new Error('Invalid server response: Missing token or userId');
             }
         } catch (err) {
-            // Handle errors and display error messages
+            // Xử lý lỗi, hiển thị thông báo lỗi
             console.error('Error during login:', err.message || err); // Debug log
-            setError(err.message || 'An error occurred during login'); // Update error state
+            setError(err.message || 'An error occurred during login'); // Cập nhật lỗi vào state
         }
     };
 

@@ -88,6 +88,64 @@ export const getProfile = async (req, res) => {
     }
 };
 
+export const updateProfile = async (req, res) => {
+    try {
+        // Lấy ID từ req.user
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'User ID is required' });
+        }
+
+        // Tìm kiếm user theo ID
+        const user = await User.findById(userId).select("+password");
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        // Lấy dữ liệu từ req.body để cập nhật
+        const { firstName, lastName, email, phone, dob, currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (firstName) user.firstName = firstName;
+        if (lastName) user.lastName = lastName;
+        if (email) user.email = email;
+        if (phone) user.phone = phone;
+        if (dob) user.dob = new Date(dob);
+
+        // Xử lý cập nhật mật khẩu
+        if (currentPassword || newPassword || confirmPassword) {
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'All password fields (currentPassword, newPassword, confirmPassword) are required' 
+                });
+            }
+
+            // Kiểm tra mật khẩu hiện tại
+            const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+            if (!isPasswordMatch) {
+                return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+            }
+
+            // Kiểm tra xác nhận mật khẩu mới
+            if (newPassword !== confirmPassword) {
+                return res.status(400).json({ success: false, message: 'New password and confirm password do not match' });
+            }
+
+            user.password = newPassword;
+        }
+
+        // Lưu thông tin người dùng
+        const updatedUser = await user.save();
+
+        // Phản hồi thông tin người dùng đã cập nhật
+        return res.status(200).json({ success: true, user: updatedUser });
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        return res.status(500).json({ success: false, message: 'An error occurred while updating profile' });
+    }
+};
+
 
 export const register = async (req, res) => {
     const { firstName, lastName, email, phone, password, role, gender, dob, medicalHistory, specialty, experience, docAvatar } = req.body;
