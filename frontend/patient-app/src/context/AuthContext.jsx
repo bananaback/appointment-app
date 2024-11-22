@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
 
         setToken(token);
 
-        navigate('/dashboard');
+        navigate('/profile');
     };
 
     const logout = () => {

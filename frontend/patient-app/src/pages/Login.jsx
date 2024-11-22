@@ -50,7 +50,7 @@ const Login = () => {
                 login(data.token);
 
                 // Chuyển hướng người dùng đến trang dashboard
-                navigate('/dashboard');
+                navigate("/schedule-appointment");
             } else {
                 throw new Error('Invalid server response: Missing token or userId');
             }

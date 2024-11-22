@@ -4,7 +4,6 @@ import { AuthProvider } from './context/AuthContext'; // Import the AuthProvider
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard'; // Example protected page
 import PrivateRoute from './components/PrivateRoute';
 import AppointmentForm from './pages/AppointmentForm';
 import Layout from './components/Layout';
@@ -24,7 +23,6 @@ function App() {
         {/* Protected route for Dashboard */}
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/schedule-appointment" element={<AppointmentForm />} />
             <Route path="/my-appointments" element={<MyAppointments />} />
             <Route path="/profile" element={<Profile />} />
