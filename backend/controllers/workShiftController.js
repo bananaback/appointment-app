@@ -2,6 +2,9 @@
 import UserAccount from '../models/UserAccount.js';
 import WorkShift from '../models/WorkShift.js';
 
+import WorkShift from './models/WorkShift.js'; // Update the path as per your project structure
+import UserAccount from './models/UserAccount.js'; // Update the path as per your project structure
+
 // Create a new work shift (Admin only)
 export const createWorkShift = async (req, res) => {
     try {
@@ -9,22 +12,41 @@ export const createWorkShift = async (req, res) => {
 
         // Validate doctor role
         const doctor = await UserAccount.findOne({ _id: doctorId, role: 'Doctor' });
-        if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
+        if (!doctor) {
+            return res.status(404).json({ message: 'Doctor not found' });
+        }
 
+        // Check if a work shift already exists for this doctor on the same date and time slot
+        const existingWorkShift = await WorkShift.findOne({
+            doctor: doctorId,
+            date: new Date(date),
+            timeSlot
+        });
+        if (existingWorkShift) {
+            return res.status(400).json({ message: 'A work shift already exists for this doctor on the given date and time slot' });
+        }
+
+        // Create a new work shift
         const workShift = new WorkShift({
             doctor: doctorId,
-            date,
+            date: new Date(date),
             timeSlot
         });
 
         await workShift.save();
-        res.status(201).json({ message: 'Work shift created', workShift });
+        res.status(201).json({ message: 'Work shift created successfully', workShift });
     } catch (error) {
+        console.error('Error creating work shift:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
 
+<<<<<<< Updated upstream
 // Get all work shifts, with optional filtering by doctorId, date, or availability
+=======
+
+// Get all work shifts, with optional filtering by doctorId or availability
+>>>>>>> Stashed changes
 export const getAllWorkShifts = async (req, res) => {
     try {
         // Extract role and user ID from req.user
@@ -33,8 +55,13 @@ export const getAllWorkShifts = async (req, res) => {
 
         let filter = {};
 
+<<<<<<< Updated upstream
         // Apply filtering for logged-in doctor's role
         if (role === 'Doctor') {
+=======
+        // Apply filtering for doctors
+        if (role === 'Doctor')
+>>>>>>> Stashed changes
             filter.doctor = userId; // Only allow viewing work shifts for the logged-in doctor
         } else if (doctorId) {
             filter.doctor = doctorId; // Allow filtering by a specific doctorId
