@@ -141,16 +141,11 @@ export const register = async (req, res) => {
 
 // Login
 export const login = async (req, res) => {
-    const { email, password, role } = req.body; // Thêm role vào body
+    const { email, password, role } = req.body; 
     try {
-        const user = await User.findOne({ email }).select('+password +role'); // Lấy thêm role từ database
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        const user = await User.findOne({ email }).select('+password +role'); 
+        if (!user || !(await bcrypt.compare(password, user.password)) || user.role !== role) {
             return res.status(401).json({ success: false, message: 'Invalid email or password' });
-        }
-
-        // Kiểm tra role
-        if (user.role !== role) {
-            return res.status(403).json({ success: false, message: 'Invalid email or password' });
         }
 
         const token = generateToken(user);
@@ -159,7 +154,7 @@ export const login = async (req, res) => {
         res
             .cookie('authToken', token, { httpOnly: true, secure: false })
             .status(200)
-            .json({ success: true, message: 'Logged in successfully', token}); // Trả thêm role nếu cần
+            .json({ success: true, message: 'Logged in successfully', token});
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
