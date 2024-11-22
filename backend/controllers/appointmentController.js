@@ -44,16 +44,14 @@ export const createAppointment = async (req, res) => {
 
 export const getAllAppointments = async (req, res) => {
     try {
-        const { startDate, endDate } = req.query; // Bộ lọc khoảng thời gian tùy chọn
+        const { startDate, endDate, status } = req.query; // Lấy thông tin lọc từ query
         const user = req.user; // Thông tin user từ middleware isAuthenticated
-
 
         if (!user) {
             return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
 
         const { id: userId, role: userRole } = user; // Lấy ID và vai trò của user
-
         let filter = {};
 
         // Admin có thể xem tất cả các cuộc hẹn
@@ -79,20 +77,8 @@ export const getAllAppointments = async (req, res) => {
             return res.status(403).json({ success: false, message: 'Access denied' });
         }
 
-        // Áp dụng bộ lọc ngày (nếu có)
-        if (startDate || endDate) {
-            filter.requestDate = {};
-            if (startDate) {
-                filter.requestDate.$gte = new Date(startDate);
-            }
-            if (endDate) {
-                filter.requestDate.$lte = new Date(endDate);
-            }
-        }
-
-        // Truy vấn các cuộc hẹn dựa trên bộ lọc
+        // Truy vấn tất cả các cuộc hẹn
         const appointments = await Appointment.find(filter)
-
             .populate('patient', 'firstName lastName email phone') // Patient details
             .populate({
                 path: 'workShift',
@@ -104,15 +90,45 @@ export const getAllAppointments = async (req, res) => {
             }) // Work shift details
             .sort({ requestDate: -1 }); // Sort by request date (latest first)
 
+        // Lọc theo ngày
+        let filteredAppointments = appointments;
+        if (!startDate && !endDate) {
+            // Không có startDate và endDate => Lọc theo ngày hôm nay
+            const today = new Date();
+            filteredAppointments = appointments.filter(appointment => {
+                const appointmentDate = new Date(appointment.workShift.date);
+                return (
+                    appointmentDate.getDate() === today.getDate() &&
+                    appointmentDate.getMonth() === today.getMonth() &&
+                    appointmentDate.getFullYear() === today.getFullYear()
+                );
+            });
+        } else {
+            // Có startDate hoặc endDate => Lọc theo phạm vi ngày
+            filteredAppointments = appointments.filter(appointment => {
+                const appointmentDate = new Date(appointment.workShift.date);
+                const isAfterStartDate = startDate ? appointmentDate >= new Date(startDate) : true;
+                const isBeforeEndDate = endDate ? appointmentDate <= new Date(endDate) : true;
+                return isAfterStartDate && isBeforeEndDate;
+            });
+        }
 
-        res.status(200).json({ success: true, appointments });
+        // Lọc theo trạng thái (nếu có)
+        if (status) {
+            filteredAppointments = filteredAppointments.filter(appointment => appointment.status === status);
+        }
 
+        res.status(200).json({ success: true, appointments: filteredAppointments });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Server error', error: error.message });
-
     }
 };
+
+
+
+
+
 
 
 export const updateAppointmentStatus = async (req, res) => {
