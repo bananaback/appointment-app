@@ -33,9 +33,10 @@ export const getAllWorkShifts = async (req, res) => {
 
         let filter = {};
 
-        // Apply filtering for doctors
-        if (role === 'Doctor') 
+        // Apply filtering for logged-in doctor
+        if (role === 'Doctor') {
             filter.doctor = userId; // Only allow viewing work shifts for the logged-in doctor
+        }
 
         // Fetch work shifts based on the base filter
         const workShifts = await WorkShift.find(filter)
@@ -45,13 +46,22 @@ export const getAllWorkShifts = async (req, res) => {
                 populate: { path: 'patient', select: 'firstName lastName medicalHistory' },
             });
 
-        // Filter work shifts by availability and date range
+        // Start filtering work shifts
         let filteredWorkShifts = workShifts;
+
+        // Apply doctorId filter
+        if (doctorId && role !== 'Doctor') {
+            filteredWorkShifts = filteredWorkShifts.filter(
+                workShift => String(workShift.doctor._id) === doctorId
+            );
+        }
 
         // Apply availability filter
         if (available) {
             const isReserved = available === 'true';
-            filteredWorkShifts = filteredWorkShifts.filter(workShift => workShift.isReserved === isReserved);
+            filteredWorkShifts = filteredWorkShifts.filter(
+                workShift => workShift.isReserved === isReserved
+            );
         }
 
         // Filter work shifts by date range
@@ -82,6 +92,7 @@ export const getAllWorkShifts = async (req, res) => {
         res.status(500).json({ message: 'Server error', error });
     }
 };
+
 
 
 // Get a specific work shift by ID (Admin, Doctor, or Patient)
