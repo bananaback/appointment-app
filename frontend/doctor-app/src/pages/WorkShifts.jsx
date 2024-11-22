@@ -1,89 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../context/useAuth';
 
 const WorkShifts = () => {
-    const { userId, role } = useAuth();
     const [workShifts, setWorkShifts] = useState([]);
-    const [filteredWorkShifts, setFilteredWorkShifts] = useState([]);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [status, setStatus] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const shiftsPerPage = 10;
-    
+
     useEffect(() => {
-        const fetchWorkShifts = async () => {
-            try {
-                const { data } = await axios.get(
-                    `http://localhost:4000/workShifts`,
-                    {
-                        withCredentials: true,
-                        params: {
-                            doctorId: role === 'doctor' ? userId : undefined,
-                        },
-                    }
-                );
-    
-                // Lấy ngày hiện tại
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Đặt thời gian về 00:00:00
-    
-                // Lọc các work shift trong ngày
-                const todayShifts = data.filter((shift) => {
-                    const shiftDate = new Date(shift.date);
-                    shiftDate.setHours(0, 0, 0, 0); // Đặt thời gian về 00:00:00
-                    return shiftDate.getTime() === today.getTime();
-                });
-    
-                setWorkShifts(data); // Lưu toàn bộ dữ liệu
-                setFilteredWorkShifts(todayShifts); // Hiển thị các ca trong ngày
-            } catch (error) {
-                console.error('Error fetching work shifts:', error);
-            }
-        };
-    
         fetchWorkShifts();
-    }, [userId, role]);
-    
-    const filterWorkShifts = () => {
-        let filter = {};
-        if (startDate) filter.startDate = new Date(startDate);
-        if (endDate) filter.endDate = new Date(endDate);
-        if (status) filter.status = status;
-    
-        const filtered = workShifts.filter((shift) => {
-            const shiftDate = new Date(shift.date);
-            const isAfterStartDate = filter.startDate ? shiftDate >= filter.startDate : true;
-            const isBeforeEndDate = filter.endDate ? shiftDate <= filter.endDate : true;
-            const matchesStatus = filter.status
-                ? (shift.isReserved ? 'Reserved' : 'Available') === filter.status
-                : true;
-    
-            return isAfterStartDate && isBeforeEndDate && matchesStatus;
-        });
-    
-        setFilteredWorkShifts(filtered);
-        setCurrentPage(1);
+    }, [startDate, endDate, status]);
+
+    const fetchWorkShifts = async () => {
+        try {
+            const params = {
+                startDate: startDate || undefined,
+                endDate: endDate || undefined,
+                available: status === 'Available' ? 'false' : status === 'Reserved' ? 'true' : undefined,
+            };
+
+            const { data } = await axios.get(`http://localhost:4000/workShifts`, {
+                withCredentials: true,
+                params,
+            });
+
+            setWorkShifts(data);
+            setCurrentPage(1); // Reset to the first page when filters change
+        } catch (error) {
+            console.error('Error fetching work shifts:', error);
+        }
     };
-    
+
+    const resetFilters = () => {
+        setStartDate('');
+        setEndDate('');
+        setStatus('');
+    };
+
     const indexOfLastShift = currentPage * shiftsPerPage;
     const indexOfFirstShift = indexOfLastShift - shiftsPerPage;
-    const currentShifts = filteredWorkShifts.slice(indexOfFirstShift, indexOfLastShift);
-    const totalPages = Math.ceil(filteredWorkShifts.length / shiftsPerPage);
-    
+    const currentShifts = workShifts.slice(indexOfFirstShift, indexOfLastShift);
+    const totalPages = Math.ceil(workShifts.length / shiftsPerPage);
+
     const handleNextPage = () => {
         if (currentPage < totalPages) {
             setCurrentPage((prevPage) => prevPage + 1);
         }
     };
-    
+
     const handlePreviousPage = () => {
         if (currentPage > 1) {
             setCurrentPage((prevPage) => prevPage - 1);
         }
     };
-    
 
     return (
         <div className="bg-gray-100 h-full py-10 px-4">
@@ -131,10 +102,10 @@ const WorkShifts = () => {
 
                         <div className="self-end">
                             <button
-                                onClick={filterWorkShifts}
+                                onClick={resetFilters}
                                 className="px-6 py-3 bg-[#0AD1C8] text-white text-lg rounded-lg hover:bg-[#0B6477] transition"
                             >
-                                Apply Filters
+                                Reset Filters
                             </button>
                         </div>
                     </div>
@@ -142,7 +113,7 @@ const WorkShifts = () => {
 
                 <div className="mt-8">
                     <h2 className="text-2xl font-semibold text-[#0B6477] mb-4">Work Shift List</h2>
-                    {filteredWorkShifts.length > 0 ? (
+                    {workShifts.length > 0 ? (
                         <div className="bg-white p-6 rounded-lg shadow-lg overflow-x-auto">
                             <table className="min-w-full border-collapse">
                                 <thead>

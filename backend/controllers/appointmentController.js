@@ -125,12 +125,6 @@ export const getAllAppointments = async (req, res) => {
     }
 };
 
-
-
-
-
-
-
 export const updateAppointmentStatus = async (req, res) => {
     try {
         // Extract appointment ID and user ID from request

@@ -258,25 +258,6 @@ const Dashboard = () => {
                         <p className="text-lg text-[#118AB2]">No appointments found.</p>
                     )}
 
-                    <div className="mt-4 flex justify-between">
-                        <button
-                            onClick={handlePreviousPage}
-                            disabled={currentPage === 1}
-                            className={`px-4 py-2 text-lg rounded-lg ${currentPage === 1 ? 'bg-gray-300' : 'bg-[#0AD1C8] text-white'} hover:bg-[#0B6477] transition`}
-                        >
-                            Previous
-                        </button>
-
-                        <span className="text-lg text-[#118AB2]">Page {currentPage} of {totalPages}</span>
-
-                        <button
-                            onClick={handleNextPage}
-                            disabled={currentPage === totalPages}
-                            className={`px-4 py-2 text-lg rounded-lg ${currentPage === totalPages ? 'bg-gray-300' : 'bg-[#0AD1C8] text-white'} hover:bg-[#0B6477] transition`}
-                        >
-                            Next
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
