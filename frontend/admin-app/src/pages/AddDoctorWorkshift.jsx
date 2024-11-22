@@ -32,25 +32,34 @@ const AddDoctorWorkshift = () => {
         fetchDoctors();
     }, []);
 
+    const fetchWorkshifts = async () => {
+        // Constructing the range from 00:00 to 23:59 based on the selected date
+        const startDate = new Date(workshiftDate);
+        startDate.setHours(0, 0, 0, 0); // Set to 00:00 of the selected day
+
+        const endDate = new Date(workshiftDate);
+        endDate.setHours(23, 59, 59, 999); // Set to 23:59 of the selected day
+
+        try {
+            const response = await axios.get('http://localhost:4000/workshifts', {
+                params: { doctorId: selectedDoctor, startDate, endDate },
+                withCredentials: true,
+            });
+            setWorkshifts(response.data || []);
+        } catch (error) {
+            console.error('Error fetching workshifts:', error);
+            setWorkshifts([]);
+        }
+    };
+
     // Fetch workshifts for a specific doctor using query parameters
     useEffect(() => {
         if (!selectedDoctor) return;
 
-        const fetchWorkshifts = async () => {
-            try {
-                const response = await axios.get('http://localhost:4000/workshifts', {
-                    params: { doctorId: selectedDoctor },
-                    withCredentials: true,
-                });
-                setWorkshifts(response.data || []);
-            } catch (error) {
-                console.error('Error fetching workshifts:', error);
-                setWorkshifts([]);
-            }
-        };
+
 
         fetchWorkshifts();
-    }, [selectedDoctor]); // Fetch workshifts when selectedDoctor changes
+    }, [selectedDoctor, workshiftDate]); // Fetch workshifts when selectedDoctor or workshiftDate changes
 
     // Updated workshift time ranges for shorter slots
     const workshiftOptions = [
@@ -87,28 +96,11 @@ const AddDoctorWorkshift = () => {
 
             if (response.status === 201) {
                 toast.success('Workshift added successfully!');
-
-                // Fetch updated workshifts after successful addition
                 fetchWorkshifts(); // Trigger re-fetching the workshifts list
-
             }
         } catch (error) {
             console.error('Error creating workshift:', error);
             toast.error('Error creating workshift. Please try again.');
-        }
-    };
-
-    // Fetch workshifts again to reflect the new workshift
-    const fetchWorkshifts = async () => {
-        try {
-            const response = await axios.get('http://localhost:4000/workshifts', {
-                params: { doctorId: selectedDoctor },
-                withCredentials: true,
-            });
-            setWorkshifts(response.data || []);
-        } catch (error) {
-            console.error('Error fetching workshifts:', error);
-            setWorkshifts([]);
         }
     };
 
@@ -156,11 +148,7 @@ const AddDoctorWorkshift = () => {
                         <h3 className="text-xl font-semibold mb-4">Workshift List</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {workshifts
-                                .filter(
-                                    (shift) =>
-                                        shift.doctor._id === selectedDoctor &&
-                                        new Date(shift.date).toDateString() === workshiftDate.toDateString()
-                                )
+
                                 .map((shift) => (
                                     <div
                                         key={shift._id}
@@ -185,23 +173,21 @@ const AddDoctorWorkshift = () => {
                                 ))}
                         </div>
                     </div>
-
-
                 </div>
 
                 {/* Right Column: Workshift Time and Add Button */}
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Workshift Time</label>
+                        <label className="block text-sm font-medium text-gray-700">Select Workshift Time</label>
                         <select
                             value={selectedWorkshift}
                             onChange={(e) => setSelectedWorkshift(e.target.value)}
                             className="w-full px-4 py-2 mt-1 border rounded-md"
                         >
                             <option value="">-- Select Workshift Time --</option>
-                            {workshiftOptions.map((shift) => (
-                                <option key={shift.value} value={shift.value}>
-                                    {shift.label}
+                            {workshiftOptions.map((workshift) => (
+                                <option key={workshift.value} value={workshift.value}>
+                                    {workshift.label}
                                 </option>
                             ))}
                         </select>
@@ -209,7 +195,7 @@ const AddDoctorWorkshift = () => {
 
                     <button
                         onClick={handleAddWorkshift}
-                        className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700"
+                        className="w-full py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                     >
                         Add Workshift
                     </button>
