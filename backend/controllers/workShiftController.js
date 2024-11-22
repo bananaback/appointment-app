@@ -41,12 +41,7 @@ export const createWorkShift = async (req, res) => {
     }
 };
 
-<<<<<<< Updated upstream
 // Get all work shifts, with optional filtering by doctorId, date, or availability
-=======
-
-// Get all work shifts, with optional filtering by doctorId or availability
->>>>>>> Stashed changes
 export const getAllWorkShifts = async (req, res) => {
     try {
         // Extract role and user ID from req.user
@@ -55,13 +50,8 @@ export const getAllWorkShifts = async (req, res) => {
 
         let filter = {};
 
-<<<<<<< Updated upstream
         // Apply filtering for logged-in doctor's role
         if (role === 'Doctor') {
-=======
-        // Apply filtering for doctors
-        if (role === 'Doctor')
->>>>>>> Stashed changes
             filter.doctor = userId; // Only allow viewing work shifts for the logged-in doctor
         } else if (doctorId) {
             filter.doctor = doctorId; // Allow filtering by a specific doctorId
