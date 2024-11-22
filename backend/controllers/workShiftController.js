@@ -55,6 +55,7 @@ export const getAllWorkShifts = async (req, res) => {
         // Apply filtering for logged-in doctor
         if (role === 'Doctor') {
             filter.doctor = userId; // Only allow viewing work shifts for the logged-in doctor
+        }
 
         // Fetch work shifts based on the base filter
         const workShifts = await WorkShift.find(filter)
