@@ -2,13 +2,11 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAuth } from "../context/AuthContext";
 
 const MyAppointments = () => {
-  const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [appointmentsPerPage] = useState(3); // Adjust this as needed
+  const [appointmentsPerPage] = useState(3);
 
   // Fetch user's appointments
   useEffect(() => {
@@ -24,7 +22,7 @@ const MyAppointments = () => {
     };
 
     fetchAppointments();
-  }, [user._id]);
+  }, []);
 
   // Handle canceling an appointment
   const handleCancelAppointment = async (appointmentId) => {
@@ -61,18 +59,21 @@ const MyAppointments = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-md">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
+    <div
+      className="max-w-5xl mx-auto p-8 rounded-3xl shadow-lg"
+      style={{ backgroundColor: "#EAF4F4" }}
+    >
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
         My Appointments
       </h2>
       {appointments.length === 0 ? (
         <p className="text-center text-gray-500">No appointments found.</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {currentAppointments.map((appointment) => (
             <div
               key={appointment._id}
-              className="flex items-center justify-between p-4 border rounded-md shadow-sm hover:shadow-md"
+              className="flex items-center justify-between p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow bg-white"
             >
               {/* Doctor Avatar */}
               <img
@@ -81,11 +82,11 @@ const MyAppointments = () => {
                   "/placeholder-avatar.png"
                 }
                 alt={`${appointment.workShift.doctor.firstName} ${appointment.workShift.doctor.lastName}`}
-                className="w-16 h-16 rounded-full object-cover"
+                className="w-16 h-16 rounded-full object-cover border border-gray-300"
               />
 
               {/* Appointment Details */}
-              <div className="flex-1 ml-4">
+              <div className="flex-1 ml-6">
                 <p className="text-lg font-medium text-gray-800">
                   {appointment.workShift.doctor.firstName}{" "}
                   {appointment.workShift.doctor.lastName}
@@ -111,10 +112,10 @@ const MyAppointments = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col space-y-2">
+              <div className="flex flex-col space-y-3">
                 <button
                   onClick={() => handleCancelAppointment(appointment._id)}
-                  className="px-4 py-2 bg-red-500 text-white text-sm rounded-md hover:bg-red-600"
+                  className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
                 >
                   Cancel
                 </button>
@@ -125,15 +126,19 @@ const MyAppointments = () => {
       )}
 
       {/* Pagination Controls */}
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-8 space-x-4">
         <button
           onClick={() => paginate(currentPage - 1)}
           disabled={currentPage === 1}
-          className="px-4 py-2 bg-gray-300 text-sm rounded-md hover:bg-gray-400"
+          className={`px-4 py-2 rounded-lg text-sm ${
+            currentPage === 1
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-gray-400 hover:bg-gray-500 text-white"
+          }`}
         >
           Previous
         </button>
-        <span className="mx-4 text-sm">
+        <span className="text-sm font-medium">
           Page {currentPage} of{" "}
           {Math.ceil(appointments.length / appointmentsPerPage)}
         </span>
@@ -142,7 +147,11 @@ const MyAppointments = () => {
           disabled={
             currentPage === Math.ceil(appointments.length / appointmentsPerPage)
           }
-          className="px-4 py-2 bg-gray-300 text-sm rounded-md hover:bg-gray-400"
+          className={`px-4 py-2 rounded-lg text-sm ${
+            currentPage === Math.ceil(appointments.length / appointmentsPerPage)
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-gray-400 hover:bg-gray-500 text-white"
+          }`}
         >
           Next
         </button>

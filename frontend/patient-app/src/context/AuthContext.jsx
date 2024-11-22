@@ -8,24 +8,21 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);  // Add loading state
     const navigate = useNavigate();
 
-    // Check localStorage for the token when the app starts
     useEffect(() => {
         const savedToken = localStorage.getItem('authToken');
-        if (savedToken) {
-            setToken(savedToken);  // If token exists, set it
+
+        if (savedToken ) {
+            setToken(savedToken);
         }
-        setLoading(false);  // Set loading to false after checking
+        setLoading(false);
     }, []);
 
     const login = (token) => {
-        // Clear previous session (if any)
-        localStorage.removeItem('authToken'); // Remove previous token
-        // Store the token in localStorage
-        setToken(token);  // Update state with the new token
-        localStorage.setItem('authToken', token); // Store in localStorage
+        localStorage.setItem('authToken', token);
 
-        // Navigate to the dashboard
-        navigate('/dashboard');
+        setToken(token);
+
+        navigate('/profile');
     };
 
     const logout = () => {

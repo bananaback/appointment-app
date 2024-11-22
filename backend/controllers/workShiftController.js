@@ -1,6 +1,6 @@
-
 import UserAccount from '../models/UserAccount.js';
 import WorkShift from '../models/WorkShift.js';
+import { startOfDay, endOfDay } from 'date-fns';
 
 // Create a new work shift (Admin only)
 export const createWorkShift = async (req, res) => {
@@ -9,22 +9,41 @@ export const createWorkShift = async (req, res) => {
 
         // Validate doctor role
         const doctor = await UserAccount.findOne({ _id: doctorId, role: 'Doctor' });
-        if (!doctor) return res.status(404).json({ message: 'Doctor not found' });
+        if (!doctor) {
+            return res.status(404).json({ message: 'Doctor not found' });
+        }
 
+        // Convert the date string to Date and strip time (start of the day)
+        const startDate = startOfDay(new Date(date));
+        const endDate = endOfDay(new Date(date));
+
+        // Check if a work shift already exists for this doctor on the same date and time slot
+        const existingWorkShift = await WorkShift.findOne({
+            doctor: doctorId,
+            date: { $gte: startDate, $lt: endDate }, // Check if the work shift is on the same day
+            timeSlot // Ensure the same time slot does not exist
+        });
+        if (existingWorkShift) {
+            return res.status(400).json({ message: 'A work shift already exists for this doctor on the given date and time slot' });
+        }
+
+        // Create a new work shift
         const workShift = new WorkShift({
             doctor: doctorId,
-            date,
+            date: new Date(date),
             timeSlot
         });
 
         await workShift.save();
-        res.status(201).json({ message: 'Work shift created', workShift });
+        res.status(201).json({ message: 'Work shift created successfully', workShift });
     } catch (error) {
+        console.error('Error creating work shift:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
 
-// Get all work shifts, with optional filtering by doctorId or availability
+
+// Get all work shifts, with optional filtering by doctorId, date, or availability
 export const getAllWorkShifts = async (req, res) => {
     try {
         // Extract role and user ID from req.user
@@ -36,7 +55,6 @@ export const getAllWorkShifts = async (req, res) => {
         // Apply filtering for logged-in doctor
         if (role === 'Doctor') {
             filter.doctor = userId; // Only allow viewing work shifts for the logged-in doctor
-        }
 
         // Fetch work shifts based on the base filter
         const workShifts = await WorkShift.find(filter)
@@ -136,6 +154,22 @@ export const updateWorkShift = async (req, res) => {
             return res.status(403).json({ message: 'You can only update the work shift within 15 minutes of its creation' });
         }
 
+        // Convert the date string to Date and strip time (start of the day)
+        const startDate = startOfDay(new Date(date));
+        const endDate = endOfDay(new Date(date));
+
+        // Check if another work shift already exists for this doctor on the same date and time slot
+        const existingWorkShift = await WorkShift.findOne({
+            doctor: workShift.doctor,
+            date: { $gte: startDate, $lt: endDate }, // Check if the work shift is on the same day
+            timeSlot, // Check if the time slot is already taken
+            _id: { $ne: id } // Ensure we are not checking the current work shift
+        });
+
+        if (existingWorkShift) {
+            return res.status(400).json({ message: 'A work shift already exists for this doctor on the given date and time slot' });
+        }
+
         // Proceed with the update if it's within the allowed time frame
         workShift.date = date || workShift.date;
         workShift.timeSlot = timeSlot || workShift.timeSlot;
@@ -143,9 +177,11 @@ export const updateWorkShift = async (req, res) => {
 
         res.status(200).json({ message: 'Work shift updated', updatedWorkShift: workShift });
     } catch (error) {
+        console.error('Error updating work shift:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
+
 
 // Delete a work shift (Admin only) - Allow delete only within 15 minutes of creation
 export const deleteWorkShift = async (req, res) => {
