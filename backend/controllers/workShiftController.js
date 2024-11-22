@@ -1,9 +1,5 @@
-
 import UserAccount from '../models/UserAccount.js';
 import WorkShift from '../models/WorkShift.js';
-
-import WorkShift from './models/WorkShift.js'; // Update the path as per your project structure
-import UserAccount from './models/UserAccount.js'; // Update the path as per your project structure
 
 // Create a new work shift (Admin only)
 export const createWorkShift = async (req, res) => {
