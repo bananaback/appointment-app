@@ -6,12 +6,13 @@ const WorkShifts = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [status, setStatus] = useState('');
+    const [sortOrder, setSortOrder] = useState('ascending'); // State for sorting order
     const [currentPage, setCurrentPage] = useState(1);
     const shiftsPerPage = 10;
 
     useEffect(() => {
         fetchWorkShifts();
-    }, [startDate, endDate, status]);
+    }, [startDate, endDate, status, sortOrder]); // Include sortOrder in dependency array
 
     const fetchWorkShifts = async () => {
         try {
@@ -26,8 +27,21 @@ const WorkShifts = () => {
                 params,
             });
 
-            setWorkShifts(data);
-            setCurrentPage(1); // Reset to the first page when filters change
+            // Sort data based on sortOrder
+            const sortedData = data.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                if (dateA - dateB !== 0) {
+                    return sortOrder === 'ascending' ? dateA - dateB : dateB - dateA;
+                }
+
+                const [startA] = a.timeSlot.split('-').map((time) => new Date(`1970-01-01T${time}:00`));
+                const [startB] = b.timeSlot.split('-').map((time) => new Date(`1970-01-01T${time}:00`));
+                return sortOrder === 'ascending' ? startA - startB : startB - startA;
+            });
+
+            setWorkShifts(sortedData);
+            setCurrentPage(1); // Reset to the first page when filters or sorting change
         } catch (error) {
             console.error('Error fetching work shifts:', error);
         }
@@ -37,6 +51,7 @@ const WorkShifts = () => {
         setStartDate('');
         setEndDate('');
         setStatus('');
+        setSortOrder('ascending'); // Reset sorting order
     };
 
     const indexOfLastShift = currentPage * shiftsPerPage;
@@ -97,6 +112,18 @@ const WorkShifts = () => {
                                 <option value="">All</option>
                                 <option value="Available">Available</option>
                                 <option value="Reserved">Reserved</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-[#118AB2] mb-2">Sort Order</label>
+                            <select
+                                className="border-[#118AB2] rounded-lg shadow-sm focus:border-[#0B6477] focus:ring-[#0B6477] px-4 py-3 text-lg"
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value)}
+                            >
+                                <option value="ascending">Ascending</option>
+                                <option value="descending">Descending</option>
                             </select>
                         </div>
 

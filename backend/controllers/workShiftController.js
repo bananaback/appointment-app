@@ -57,7 +57,38 @@ export const getAllWorkShifts = async (req, res) => {
             filter.doctor = userId; // Only allow viewing work shifts for the logged-in doctor
         }
 
-        // Fetch work shifts based on the base filter
+        // Apply doctorId filter for admin or other roles
+        if (doctorId && role !== 'Doctor') {
+            filter.doctor = doctorId;
+        }
+
+        // Apply date range filter using startDate and endDate
+        if (!startDate && !endDate) {
+            // If both are not provided, default to today's date
+            const today = new Date();
+            filter.date = {
+                $gte: new Date(today.setHours(0, 0, 0, 0)), // Start of today
+                $lte: new Date(today.setHours(23, 59, 59, 999)), // End of today
+            };
+        } else {
+            // Use startDate and endDate if provided
+            filter.date = {};
+            if (startDate) {
+                const parsedStartDate = new Date(startDate);
+                filter.date.$gte = new Date(parsedStartDate.setHours(0, 0, 0, 0)); // Start of startDate
+            }
+            if (endDate) {
+                const parsedEndDate = new Date(endDate);
+                filter.date.$lte = new Date(parsedEndDate.setHours(23, 59, 59, 999)); // End of endDate
+            }
+        }
+
+        // Apply availability filter
+        if (available) {
+            filter.isReserved = available === 'true';
+        }
+
+        // Fetch work shifts based on the constructed filter
         const workShifts = await WorkShift.find(filter)
             .populate('doctor', 'firstName lastName')
             .populate({
@@ -65,54 +96,12 @@ export const getAllWorkShifts = async (req, res) => {
                 populate: { path: 'patient', select: 'firstName lastName medicalHistory' },
             });
 
-        // Start filtering work shifts
-        let filteredWorkShifts = workShifts;
-
-        // Apply doctorId filter
-        if (doctorId && role !== 'Doctor') {
-            filteredWorkShifts = filteredWorkShifts.filter(
-                workShift => String(workShift.doctor._id) === doctorId
-            );
-        }
-
-        // Apply availability filter
-        if (available) {
-            const isReserved = available === 'true';
-            filteredWorkShifts = filteredWorkShifts.filter(
-                workShift => workShift.isReserved === isReserved
-            );
-        }
-
-        // Filter work shifts by date range
-        if (!startDate && !endDate) {
-            // No startDate and endDate => Filter by today's date
-            const today = new Date();
-            filteredWorkShifts = filteredWorkShifts.filter(workShift => {
-                const workShiftDate = new Date(workShift.date);
-                return (
-                    workShiftDate.getDate() === today.getDate() &&
-                    workShiftDate.getMonth() === today.getMonth() &&
-                    workShiftDate.getFullYear() === today.getFullYear()
-                );
-            });
-        } else {
-            // Filter by date range if startDate or endDate is provided
-            filteredWorkShifts = filteredWorkShifts.filter(workShift => {
-                const workShiftDate = new Date(workShift.date);
-                const isAfterStartDate = startDate ? workShiftDate >= new Date(startDate) : true;
-                const isBeforeEndDate = endDate ? workShiftDate <= new Date(endDate) : true;
-                return isAfterStartDate && isBeforeEndDate;
-            });
-        }
-
-        res.status(200).json(filteredWorkShifts);
+        res.status(200).json(workShifts);
     } catch (error) {
         console.error('Error fetching work shifts:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
-
-
 
 // Get a specific work shift by ID (Admin, Doctor, or Patient)
 export const getWorkShiftById = async (req, res) => {
