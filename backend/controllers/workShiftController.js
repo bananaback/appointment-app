@@ -102,9 +102,6 @@ export const getAllWorkShifts = async (req, res) => {
     }
 };
 
-
-
-
 // Get a specific work shift by ID (Admin, Doctor, or Patient)
 export const getWorkShiftById = async (req, res) => {
     try {

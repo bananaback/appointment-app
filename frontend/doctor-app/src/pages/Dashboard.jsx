@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import Clock from "../components/Clock";
 
 const Dashboard = () => {
     const [userInfo, setUserInfo] = useState(null);
     const [appointments, setAppointments] = useState([]);
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [status, setStatus] = useState('');
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [status, setStatus] = useState("");
+    const [sortOrder, setSortOrder] = useState("ascending"); // Default sort order
     const navigate = useNavigate();
 
     const [statusCounts, setStatusCounts] = useState({
@@ -21,7 +22,6 @@ const Dashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const appointmentsPerPage = 5;
 
-    // Fetch user info
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
@@ -34,7 +34,6 @@ const Dashboard = () => {
         fetchUserInfo();
     }, []);
 
-    // Fetch appointments with filters
     const fetchAppointments = async () => {
         try {
             const { data } = await axios.get("http://localhost:4000/appointments", {
@@ -42,13 +41,29 @@ const Dashboard = () => {
                 params: { startDate, endDate, status },
             });
 
-            setAppointments(data.appointments);
+            const sortedAppointments = data.appointments.sort((a, b) => {
+                const dateA = new Date(a.workShift.date);
+                const dateB = new Date(b.workShift.date);
 
-            // Update status counts
-            const counts = data.appointments.reduce((acc, appointment) => {
-                acc[appointment.status] = (acc[appointment.status] || 0) + 1;
-                return acc;
-            }, { Pending: 0, Accepted: 0, Rejected: 0, Done: 0 });
+                if (dateA - dateB !== 0) {
+                    return sortOrder === "descending" ? dateB - dateA : dateA - dateB;
+                }
+
+                const [startA] = a.workShift.timeSlot.split("-").map((time) => new Date(`1970-01-01T${time}:00`));
+                const [startB] = b.workShift.timeSlot.split("-").map((time) => new Date(`1970-01-01T${time}:00`));
+
+                return sortOrder === "descending" ? startB - startA : startA - startB;
+            });
+
+            setAppointments(sortedAppointments);
+
+            const counts = sortedAppointments.reduce(
+                (acc, appointment) => {
+                    acc[appointment.status] = (acc[appointment.status] || 0) + 1;
+                    return acc;
+                },
+                { Pending: 0, Accepted: 0, Rejected: 0, Done: 0 }
+            );
 
             setStatusCounts(counts);
         } catch (error) {
@@ -56,18 +71,17 @@ const Dashboard = () => {
         }
     };
 
-    // Fetch appointments on initial load and when filters change
     useEffect(() => {
         fetchAppointments();
-    }, [startDate, endDate, status]);
+    }, [startDate, endDate, status, sortOrder]);
 
     const handleResetFilters = () => {
-        setStartDate('');
-        setEndDate('');
-        setStatus('');
+        setStartDate("");
+        setEndDate("");
+        setStatus("");
+        setSortOrder("ascending");
     };
 
-    // Pagination
     const indexOfLastAppointment = currentPage * appointmentsPerPage;
     const indexOfFirstAppointment = indexOfLastAppointment - appointmentsPerPage;
     const currentAppointments = appointments.slice(indexOfFirstAppointment, indexOfLastAppointment);
@@ -75,17 +89,17 @@ const Dashboard = () => {
 
     const handleNextPage = () => {
         if (currentPage < totalPages) {
-            setCurrentPage(prevPage => prevPage + 1);
+            setCurrentPage((prevPage) => prevPage + 1);
         }
     };
 
     const handlePreviousPage = () => {
         if (currentPage > 1) {
-            setCurrentPage(prevPage => prevPage - 1);
+            setCurrentPage((prevPage) => prevPage - 1);
         }
     };
 
-    const handleRowClick = appointmentId => {
+    const handleRowClick = (appointmentId) => {
         navigate(`/appointments/${appointmentId}`);
     };
 
@@ -136,6 +150,7 @@ const Dashboard = () => {
                     </div>
                 </div>
 
+                {/* Filter Section */}
                 <div className="mb-8">
                     <h2 className="text-xl font-semibold text-[#0B6477]">Filter Appointments</h2>
                     <div className="flex space-x-4 mt-4">
@@ -148,7 +163,6 @@ const Dashboard = () => {
                                 onChange={(e) => setStartDate(e.target.value)}
                             />
                         </div>
-
                         <div>
                             <label className="block text-[#118AB2] mb-2">End Date</label>
                             <input
@@ -158,7 +172,6 @@ const Dashboard = () => {
                                 onChange={(e) => setEndDate(e.target.value)}
                             />
                         </div>
-
                         <div>
                             <label className="block text-[#118AB2] mb-2">Status</label>
                             <select
@@ -173,7 +186,18 @@ const Dashboard = () => {
                                 <option value="Done">Done</option>
                             </select>
                         </div>
-
+                        {/* Dropdown for Sort Order */}
+                        <div>
+                            <label className="block text-[#118AB2] mb-2">Sort Order</label>
+                            <select
+                                className="border-[#118AB2] rounded-lg shadow-sm focus:border-[#0B6477] focus:ring-[#0B6477] px-4 py-3 text-lg"
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value)}
+                            >
+                                <option value="ascending">Ascending</option>
+                                <option value="descending">Descending</option>
+                            </select>
+                        </div>
                         <div className="self-end">
                             <button
                                 onClick={handleResetFilters}
@@ -234,9 +258,8 @@ const Dashboard = () => {
                                 <button
                                     onClick={handlePreviousPage}
                                     disabled={currentPage === 1}
-                                    className={`px-4 py-2 bg-[#0AD1C8] text-white rounded-lg hover:bg-[#0B6477] transition ${
-                                        currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
-                                    }`}
+                                    className={`px-4 py-2 bg-[#0AD1C8] text-white rounded-lg hover:bg-[#0B6477] transition ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+                                        }`}
                                 >
                                     Previous
                                 </button>
@@ -246,9 +269,8 @@ const Dashboard = () => {
                                 <button
                                     onClick={handleNextPage}
                                     disabled={currentPage === totalPages}
-                                    className={`px-4 py-2 bg-[#0AD1C8] text-white rounded-lg hover:bg-[#0B6477] transition ${
-                                        currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
-                                    }`}
+                                    className={`px-4 py-2 bg-[#0AD1C8] text-white rounded-lg hover:bg-[#0B6477] transition ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+                                        }`}
                                 >
                                     Next
                                 </button>
