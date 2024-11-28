@@ -13,7 +13,6 @@ const AddDoctor = () => {
         role: 'Doctor',
         dob: '',
         gender: 'Male',
-        address: { street: '', city: '', state: '', zip: '' },
         specialty: 'Cardiology',
         experience: 0,
         docAvatar: ''
@@ -22,21 +21,10 @@ const AddDoctor = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
 
-        if (name.startsWith("address.")) {
-            const addressField = name.split(".")[1];
-            setDoctorDetails((prevDetails) => ({
-                ...prevDetails,
-                address: {
-                    ...prevDetails.address,
-                    [addressField]: value
-                }
-            }));
-        } else {
-            setDoctorDetails({
-                ...doctorDetails,
-                [name]: value
-            });
-        }
+        setDoctorDetails({
+            ...doctorDetails,
+            [name]: value
+        });
     };
 
     const handleUploadClick = () => {
@@ -65,7 +53,6 @@ const AddDoctor = () => {
         myWidget.open();
     };
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -92,7 +79,6 @@ const AddDoctor = () => {
                 role: 'Doctor',
                 dob: '',
                 gender: 'Male',
-                address: { street: '', city: '', state: '', zip: '' },
                 specialty: 'Cardiology',
                 experience: 0,
                 docAvatar: ''
@@ -111,7 +97,6 @@ const AddDoctor = () => {
             }
         }
     };
-
 
     return (
         <div className="container mx-auto p-4 bg-white shadow-lg rounded-md max-w-4xl">
@@ -195,50 +180,6 @@ const AddDoctor = () => {
                             type="date"
                             name="dob"
                             value={doctorDetails.dob}
-                            onChange={handleChange}
-                            className="border p-2 rounded w-full"
-                        />
-                    </div>
-                </div>
-                <div className="flex space-x-4">
-                    <div className="w-full">
-                        <label>Street</label>
-                        <input
-                            type="text"
-                            name="address.street"
-                            value={doctorDetails.address.street}
-                            onChange={handleChange}
-                            className="border p-2 rounded w-full"
-                        />
-                    </div>
-                    <div className="w-full">
-                        <label>City</label>
-                        <input
-                            type="text"
-                            name="address.city"
-                            value={doctorDetails.address.city}
-                            onChange={handleChange}
-                            className="border p-2 rounded w-full"
-                        />
-                    </div>
-                </div>
-                <div className="flex space-x-4">
-                    <div className="w-full">
-                        <label>State</label>
-                        <input
-                            type="text"
-                            name="address.state"
-                            value={doctorDetails.address.state}
-                            onChange={handleChange}
-                            className="border p-2 rounded w-full"
-                        />
-                    </div>
-                    <div className="w-full">
-                        <label>ZIP Code</label>
-                        <input
-                            type="text"
-                            name="address.zip"
-                            value={doctorDetails.address.zip}
                             onChange={handleChange}
                             className="border p-2 rounded w-full"
                         />

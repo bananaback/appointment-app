@@ -59,12 +59,6 @@ const userAccountSchema = new mongoose.Schema({
         required: true,
         enum: ['Male', 'Female', 'Other'],
     },
-    address: {
-        street: { type: String },
-        city: { type: String },
-        state: { type: String },
-        zip: { type: String },
-    },
 
     // Doctor-specific fields
     specialty: {
