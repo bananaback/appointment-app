@@ -43,7 +43,6 @@ export const createWorkShift = async (req, res) => {
 };
 
 
-// Get all work shifts, with optional filtering by doctorId, date, or availability
 export const getAllWorkShifts = async (req, res) => {
     try {
         // Extract role and user ID from req.user
